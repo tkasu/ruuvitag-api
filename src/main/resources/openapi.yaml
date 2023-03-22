@@ -1,0 +1,50 @@
+openapi: 3.1.0
+info:
+  title: Ruuvi Tag API
+  version: 0.1.0
+servers:
+  - url: http://api.fixme.com/v1
+    description: FIXME
+paths:
+  /telemetry/{telemetryType}/{sensorName}:
+    get:
+      summary: Return array of latest telemetry for given telemetryType and sensorName
+      responses:
+        '200':
+          description: Array of telemetry structs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Telemetry'
+  /telemetry/{sensorName}:
+    post:
+      summary: Send new telemetries to server for a given sensor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  telemetry_type:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Telemetry'
+      responses:
+        '201':
+          description: Created
+
+components:
+  schemas:
+    Telemetry:
+      properties:
+        timestamp:
+          type: integer
+        value:
+          type: number
