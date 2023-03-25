@@ -17,7 +17,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Telemetry'
+                  $ref: '#/components/schemas/Measurement'
   /telemetry/{sensorName}:
     post:
       summary: Send new telemetries to server for a given sensor
@@ -35,16 +35,19 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Telemetry'
+                      $ref: '#/components/schemas/Measurement'
       responses:
         '201':
           description: Created
 
 components:
   schemas:
-    Telemetry:
+    Measurement:
       properties:
+        sensor_name:
+          type: string
         timestamp:
           type: integer
+          description: Timestamp in unix format (ms)
         value:
           type: number
