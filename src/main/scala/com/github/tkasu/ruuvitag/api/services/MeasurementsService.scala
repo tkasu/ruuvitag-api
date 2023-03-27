@@ -9,7 +9,7 @@ import com.github.tkasu.ruuvitag.api.domain.measurementtype.MeasurementType
 import com.github.tkasu.ruuvitag.api.domain.sensor.SensorName
 import com.github.tkasu.ruuvitag.api.domain.user.User
 
-trait Measurements[F[_]] {
+trait MeasurementsService[F[_]] {
   def getMeasurements(
       user: User,
       sensorName: SensorName,
