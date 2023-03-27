@@ -16,7 +16,13 @@ lazy val root = (project in file(".")).settings(
 )
 
 libraryDependencies ++= Seq(
-  "io.estatico" %% "newtype" % "0.4.4",
   "com.beachape" %% "enumeratum" % "1.7.2",
+  "dev.profunktor" %% "http4s-jwt-auth" % "1.2.0",
+  "dev.optics" %% "monocle-law" % "3.2.0",
+  "io.circe" %% "circe-core" % "0.14.2",
+  "io.estatico" %% "newtype" % "0.4.4",
   "org.typelevel" %% "cats-core" % "2.9.0",
+  "tf.tofu"    %% "derevo-core" % "0.13.0",
+  "tf.tofu"    %% "derevo-cats" % "0.13.0",
+  "tf.tofu"    %% "derevo-circe-magnolia" % "0.13.0",
 )
