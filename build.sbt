@@ -1,28 +1,22 @@
-inThisBuild(
-  List(
-    scalaVersion := "2.13.10",
-    semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision,
-    scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value),
-    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
+val scala3Version = "3.3.1"
+
+lazy val zioVersion = "2.0.13"
+lazy val zioJsonVersion = "0.6.1"
+lazy val zioPreludeVersion = "1.0.0-RC20"
+
+lazy val root = project
+  .in(file("."))
+  .settings(
+    name := "ruuvitag-api",
+    version := "0.1.0-SNAPSHOT",
+
+    scalaVersion := scala3Version,
+
+    libraryDependencies ++= List(
+      "dev.zio" %% "zio" % zioVersion,
+      "dev.zio" %% "zio-json" % zioJsonVersion,
+      "dev.zio" %% "zio-prelude" % zioPreludeVersion,
+      "dev.zio" %% "zio-test" % zioVersion % Test,
+      "dev.zio" %% "zio-test-sbt" % zioVersion % Test,
+    )
   )
-)
-
-lazy val root = (project in file(".")).settings(
-  resolvers += Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(
-    Resolver.ivyStylePatterns
-  ),
-  scalacOptions ++= List("-Wunused", "-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-)
-
-libraryDependencies ++= Seq(
-  "com.beachape" %% "enumeratum" % "1.7.2",
-  "dev.profunktor" %% "http4s-jwt-auth" % "1.2.0",
-  "dev.optics" %% "monocle-law" % "3.2.0",
-  "io.circe" %% "circe-core" % "0.14.2",
-  "io.estatico" %% "newtype" % "0.4.4",
-  "org.typelevel" %% "cats-core" % "2.9.0",
-  "tf.tofu"    %% "derevo-core" % "0.13.0",
-  "tf.tofu"    %% "derevo-cats" % "0.13.0",
-  "tf.tofu"    %% "derevo-circe-magnolia" % "0.13.0",
-)

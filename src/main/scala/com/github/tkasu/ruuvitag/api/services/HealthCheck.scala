@@ -1,7 +1,7 @@
 package com.github.tkasu.ruuvitag.api.services
 
-import com.github.tkasu.ruuvitag.api.domain.healthcheck._
+import zio.*
+import com.github.tkasu.ruuvitag.api.domain.healthcheck.*
 
-trait HealthCheck[F[_]] {
-  def status(): F[AppStatus]
-}
+trait HealthCheck:
+  def status(): Task[AppStatus]
