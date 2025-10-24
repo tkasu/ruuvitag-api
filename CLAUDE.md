@@ -258,21 +258,23 @@ final case class MeasurementsProgram(
 
 ### Build Commands
 
+This project includes a Makefile with standard targets. Run `make help` to see all available commands.
+
 ```bash
-# Code formatting check
-sbt scalafmtCheckAll
+# Using Make (recommended)
+make build    # Compile project
+make test     # Run all tests
+make lint     # Check code formatting
+make format   # Format code with scalafmt
+make clean    # Remove build artifacts
+make run      # Run application (when implemented)
+make console  # Start SBT console
 
-# Auto-format code
-sbt scalafmtAll
-
-# Compile (type checking)
+# Or use SBT directly
 sbt compile
-
-# Run tests (currently: empty test directory)
 sbt test
-
-# All-in-one (format + test)
-sbt scalafmtAll test
+sbt scalafmtCheckAll
+sbt scalafmtAll
 
 # Package into JAR
 sbt package
@@ -295,6 +297,16 @@ sbt package
 4. Add Main object that starts server
 
 ### Testing
+
+```bash
+# Using Make (recommended)
+make test     # Run all tests
+make lint     # Check code formatting
+
+# Or use SBT directly
+sbt test
+sbt scalafmtCheckAll test
+```
 
 **Current Status:** No tests written yet
 
