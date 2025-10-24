@@ -6,9 +6,9 @@
 
 **Status:** Work in Progress - Foundation/Skeleton (domain models and service interfaces defined)
 
-**Language:** Scala 3.3.1
+**Language:** Scala 3.7.3
 
-**Effect System:** ZIO 2.0.13
+**Effect System:** ZIO 2.1.14
 
 **Repository:** https://github.com/tkasu/ruuvitag-api
 
@@ -28,12 +28,12 @@ This application serves as the HTTP API and persistence layer by:
 
 ### Tech Stack
 
-- **Language:** Scala 3.3.1 (modern functional language with enhanced syntax)
-- **Effect System:** ZIO 2.0.13 (functional effects for async/concurrent operations)
-- **JSON:** ZIO JSON 0.6.1 (compile-time codec derivation, zero runtime reflection)
-- **Utilities:** ZIO Prelude 1.0.0-RC20 (functional data structures)
-- **Build Tool:** SBT 1.8.2
-- **Testing:** ZIO Test 2.0.13 (effect-based property testing)
+- **Language:** Scala 3.7.3 (modern functional language with enhanced syntax)
+- **Effect System:** ZIO 2.1.14 (functional effects for async/concurrent operations)
+- **JSON:** ZIO JSON 0.7.3 (compile-time codec derivation, zero runtime reflection)
+- **Utilities:** ZIO Prelude 1.0.0-RC35 (functional data structures)
+- **Build Tool:** SBT 1.11.7
+- **Testing:** ZIO Test 2.1.14 (effect-based property testing)
 - **Code Quality:** Scalafmt 3.7.4, Scalafix 0.10.4
 
 ### Design Philosophy
@@ -238,10 +238,11 @@ final case class MeasurementsProgram(
 ### Prerequisites
 
 1. **Java Development Kit (JDK)**
-   - JDK 11 or higher
-   - Tested with JDK 20
+   - JDK 21 LTS (Eclipse Temurin) required
+   - Install via sdkman: `sdk install java 21.0.8-tem`
    ```bash
    java -version
+   # Should show: openjdk version "21.0.8" 2025-07-15 LTS
    ```
 
 2. **SBT (Scala Build Tool)**
@@ -592,11 +593,11 @@ Key dependencies from build.sbt:
 
 | Dependency | Version | Purpose |
 |------------|---------|---------|
-| zio | 2.0.13 | Effect system and async runtime |
-| zio-json | 0.6.1 | JSON codec derivation (zero reflection) |
-| zio-prelude | 1.0.0-RC20 | Functional data structures (NonEmptyList) |
-| zio-test | 2.0.13 | Effect-based property testing |
-| zio-test-sbt | 2.0.13 | SBT test runner |
+| zio | 2.1.14 | Effect system and async runtime |
+| zio-json | 0.7.3 | JSON codec derivation (zero reflection) |
+| zio-prelude | 1.0.0-RC35 | Functional data structures (NonEmptyList) |
+| zio-test | 2.1.14 | Effect-based property testing |
+| zio-test-sbt | 2.1.14 | SBT test runner |
 
 **Notable Omissions (to be added):**
 - ❌ HTTP server (http4s, Finch, etc.)

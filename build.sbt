@@ -1,4 +1,4 @@
-val scala3Version = "3.5.2"
+val scala3Version = "3.7.3"
 
 lazy val zioVersion = "2.1.14"
 lazy val zioJsonVersion = "0.7.3"
