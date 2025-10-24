@@ -8,9 +8,12 @@ object NoopHealthCheckSpec extends ZIOSpecDefault:
 
   def spec = suite("NoopHealthCheckSpec")(
     test("NoopHealthCheck.status() should return Ok status") {
-      for status <- NoopHealthCheck.status()
-      yield assertTrue(
-        status.persistenceLayerStatus.value == Status.Ok
-      )
+      NoopHealthCheck
+        .status()
+        .map(status =>
+          assertTrue(
+            status.persistenceLayerStatus.value == Status.Ok
+          )
+        )
     }
   )
