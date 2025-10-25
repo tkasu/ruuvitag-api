@@ -9,8 +9,8 @@ object MetricsRoutesSpec extends ZIOSpecDefault:
 
   def spec = suite("MetricsRoutesSpec")(
     test("GET /metrics should return 200 OK") {
-      for
-        response <- MetricsRoutes.routes(Request.get(URL.root / "metrics"))
+      for response <- MetricsRoutes
+          .routes(Request.get(URL.root / "metrics"))
           .provide(
             ZLayer.succeed(MetricsConfig(1.second)),
             prometheus.prometheusLayer,
@@ -20,7 +20,8 @@ object MetricsRoutesSpec extends ZIOSpecDefault:
     },
     test("GET /metrics should return text/plain content type") {
       for
-        response <- MetricsRoutes.routes(Request.get(URL.root / "metrics"))
+        response <- MetricsRoutes
+          .routes(Request.get(URL.root / "metrics"))
           .provide(
             ZLayer.succeed(MetricsConfig(1.second)),
             prometheus.prometheusLayer,
@@ -33,13 +34,16 @@ object MetricsRoutesSpec extends ZIOSpecDefault:
     },
     test("GET /metrics should return valid response body") {
       for
-        response <- MetricsRoutes.routes(Request.get(URL.root / "metrics"))
+        response <- MetricsRoutes
+          .routes(Request.get(URL.root / "metrics"))
           .provide(
             ZLayer.succeed(MetricsConfig(1.second)),
             prometheus.prometheusLayer,
             prometheus.publisherLayer
           )
         body <- response.body.asString
-      yield assertTrue(body != null) // Metrics may be empty initially, but body should not be null
+      yield assertTrue(
+        body != null
+      ) // Metrics may be empty initially, but body should not be null
     }
   )
