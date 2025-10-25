@@ -32,15 +32,14 @@ object RequestLoggingMiddleware:
               // Log request payload for POST and PUT requests
               bodyStr <- request.method match
                 case Method.POST | Method.PUT =>
-                  request.body.asString.orElseFail(
-                    Response.internalServerError("Failed to read body")
-                  )
+                  request.body.asString.catchAll(_ => ZIO.succeed(""))
                 case _ =>
                   ZIO.succeed("")
 
-              _ <- if bodyStr.nonEmpty then
-                ZIO.logDebug(s"Request payload: $bodyStr")
-              else ZIO.unit
+              _ <-
+                if bodyStr.nonEmpty then
+                  ZIO.logDebug(s"Request payload: $bodyStr")
+                else ZIO.unit
 
               // Process the request through the original handler
               response <- handler.runZIO(request)
@@ -50,7 +49,3 @@ object RequestLoggingMiddleware:
             yield response).catchAll(err => ZIO.succeed(err))
           }
         }
-
-
-
-

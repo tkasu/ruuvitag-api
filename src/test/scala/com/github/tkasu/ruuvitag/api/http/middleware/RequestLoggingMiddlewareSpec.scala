@@ -19,22 +19,22 @@ object RequestLoggingMiddlewareSpec extends ZIOSpecDefault:
 
       val routesWithLogging = testRoutes @@ RequestLoggingMiddleware()
 
-      for
-        response <- routesWithLogging.runZIO(Request.get(URL.root / "test"))
+      for response <- routesWithLogging.runZIO(Request.get(URL.root / "test"))
       yield assertTrue(response.status == Status.Ok)
     },
     test("should handle POST requests with body") {
       val testRoutes = Routes(
         Method.POST / "test" -> handler { (req: Request) =>
-          req.body.asString.map(_ => Response.ok).orElse(ZIO.succeed(Response.ok))
+          req.body.asString
+            .map(_ => Response.ok)
+            .orElse(ZIO.succeed(Response.ok))
         }
       )
 
       val routesWithLogging = testRoutes @@ RequestLoggingMiddleware()
       val testBody = """{"test": "data"}"""
 
-      for
-        response <- routesWithLogging
+      for response <- routesWithLogging
           .runZIO(
             Request.post(
               URL.root / "test",
@@ -52,8 +52,7 @@ object RequestLoggingMiddlewareSpec extends ZIOSpecDefault:
 
       val routesWithLogging = testRoutes @@ RequestLoggingMiddleware()
 
-      for
-        response <- routesWithLogging.runZIO(Request.get(URL.root / "test"))
+      for response <- routesWithLogging.runZIO(Request.get(URL.root / "test"))
       yield assertTrue(response.status == Status.Ok)
     },
     test("should pass through error responses") {
@@ -65,8 +64,7 @@ object RequestLoggingMiddlewareSpec extends ZIOSpecDefault:
 
       val routesWithLogging = testRoutes @@ RequestLoggingMiddleware()
 
-      for
-        response <- routesWithLogging.runZIO(Request.get(URL.root / "error"))
+      for response <- routesWithLogging.runZIO(Request.get(URL.root / "error"))
       yield assertTrue(response.status == Status.BadRequest)
     }
   ).provide(
