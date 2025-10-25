@@ -4,7 +4,7 @@ WIP Program to persist and get measurements from Ruuvi tags.
 
 ## Prerequisites
 
-- **Java 21 LTS** (Eclipse Temurin) - Install via sdkman: `sdk install java 21.0.8-tem`
+- **Java 25 LTS** (Eclipse Temurin) - Install via sdkman: `sdk install java 25.0.0-tem`
 - **SBT 1.11.7** (specified in project/build.properties)
 - **Scala 3.7.3** (managed by SBT)
 
