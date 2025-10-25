@@ -238,11 +238,11 @@ final case class MeasurementsProgram(
 ### Prerequisites
 
 1. **Java Development Kit (JDK)**
-   - JDK 21 LTS (Eclipse Temurin) required
-   - Install via sdkman: `sdk install java 21.0.8-tem`
+   - JDK 25 LTS (Eclipse Temurin) required
+   - Install via sdkman: `sdk install java 25.0.0-tem`
    ```bash
    java -version
-   # Should show: openjdk version "21.0.8" 2025-07-15 LTS
+   # Should show: openjdk version "25" 2025-09-22 LTS
    ```
 
 2. **SBT (Scala Build Tool)**
