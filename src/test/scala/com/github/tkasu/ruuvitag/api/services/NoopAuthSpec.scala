@@ -33,11 +33,18 @@ object NoopAuthSpec extends ZIOSpecDefault:
       )
     },
     test("findUser should return user with correct id and name") {
-      val expectedId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
+      val expectedId = UUID.randomUUID()
       val expectedUser = createTestUser(expectedId, "specific-user")
       val noopAuth = NoopAuth(expectedUser)
 
       for result <- noopAuth.findUser("test-token")
       yield assertTrue(result.contains(expectedUser))
+    },
+    test("findUser never returns None") {
+      val testUser = createTestUser(UUID.randomUUID(), "test-user")
+      val noopAuth = NoopAuth(testUser)
+
+      for result <- noopAuth.findUser("any-token")
+      yield assertTrue(result.isDefined)
     }
   )
