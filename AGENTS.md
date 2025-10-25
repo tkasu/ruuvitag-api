@@ -740,6 +740,20 @@ This is an early-stage project. Potential contributions:
 - Create Docker support
 - Write API documentation
 
+### Working with AI Assistants
+
+When committing changes that were created with the help of an AI assistant (e.g., GitHub Copilot, Gemini, Claude), please use the `Co-authored-by:` trailer in your commit message to give proper credit. This helps track the origin of the code and acknowledges the role of the AI in the development process.
+
+**Example:**
+
+```
+feat: Add user authentication
+
+Implement the user login and registration endpoints.
+
+Co-authored-by: Name of the AI <ai-assistant@example.com>
+```
+
 ## License
 
 MIT License - Copyright 2023 Tomi Kasurinen
