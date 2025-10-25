@@ -154,6 +154,24 @@ else
     exit 1
 fi
 
+# Test 5: GET /metrics endpoint
+echo -e "\n${YELLOW}Test 5: Prometheus metrics endpoint${NC}"
+METRICS_RESPONSE=$(curl -s -w "\n%{http_code}" \
+    "http://$SERVER_HOST:$SERVER_PORT/metrics")
+
+HTTP_CODE=$(echo "$METRICS_RESPONSE" | tail -n1)
+RESPONSE_BODY=$(echo "$METRICS_RESPONSE" | sed '$d')
+
+echo "HTTP Status: $HTTP_CODE"
+echo "Response (first 5 lines): $(echo "$RESPONSE_BODY" | head -n5)"
+
+if [ "$HTTP_CODE" = "200" ]; then
+    echo -e "${GREEN}✓ Metrics endpoint accessible${NC}"
+else
+    echo -e "${RED}✗ Metrics endpoint failed (expected 200, got $HTTP_CODE)${NC}"
+    exit 1
+fi
+
 echo -e "\n${GREEN}═══════════════════════════════════════${NC}"
 echo -e "${GREEN}All e2e tests passed successfully! ✓${NC}"
 echo -e "${GREEN}═══════════════════════════════════════${NC}"
