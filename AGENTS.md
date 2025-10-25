@@ -696,24 +696,27 @@ Key dependencies from build.sbt:
 
 ## Current Work
 
-**Active Development:** ZIO HTTP API Implementation
+**Recently Completed:** ZIO HTTP API Implementation
 
-See [TODO.md](./TODO.md) for detailed implementation plan and progress tracking.
-
-The current implementation focuses on creating a runnable HTTP server with:
+The initial HTTP API implementation is complete and ready for use:
 - ZIO HTTP for REST endpoints
 - zio-config for application configuration
 - NoopAuth and InMemoryMeasurementsService as default implementations
 - Comprehensive testing including e2e tests
+- Full OpenAPI specification compliance with DTO layer
+
+See [PR #12](https://github.com/tkasu/ruuvitag-api/pull/12) for implementation details.
 
 ## Roadmap
 
-### Phase 1: Runnable HTTP Server (In Progress - See TODO.md)
-- [ ] Add ZIO HTTP dependency
-- [ ] Implement HTTP routes matching OpenAPI spec
-- [ ] Create Main object and server startup
-- [ ] Add configuration library (zio-config with Typesafe Config)
-- [ ] Basic request/response logging
+### Phase 1: Runnable HTTP Server (✅ Completed)
+- [x] Add ZIO HTTP dependency
+- [x] Implement HTTP routes matching OpenAPI spec
+- [x] Create Main object and server startup
+- [x] Add configuration library (zio-config with Typesafe Config)
+- [x] Basic request/response logging
+- [x] DTO layer for OpenAPI alignment
+- [x] Comprehensive unit and e2e tests
 
 ### Phase 2: Data Persistence (Weeks 3-4)
 - [ ] Add Doobie for database access
