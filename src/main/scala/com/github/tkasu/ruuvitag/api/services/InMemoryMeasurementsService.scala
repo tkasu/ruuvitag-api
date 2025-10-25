@@ -42,4 +42,6 @@ final case class InMemoryMeasurementsService(
 
 object InMemoryMeasurementsService:
   def make: UIO[InMemoryMeasurementsService] =
-    Ref.make(List.empty[(UserId, Measurement)]).map(InMemoryMeasurementsService(_))
+    Ref
+      .make(List.empty[(UserId, Measurement)])
+      .map(InMemoryMeasurementsService(_))
