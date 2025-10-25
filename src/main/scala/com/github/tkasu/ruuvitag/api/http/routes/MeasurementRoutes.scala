@@ -52,12 +52,11 @@ object MeasurementRoutes:
   private def parseMeasurementType(
       str: String
   ): Either[String, MeasurementType] =
-    str match
-      case "Temperature" | "temperature" =>
-        Right(MeasurementType.Temperature)
-      case "Pressure" | "pressure" => Right(MeasurementType.Pressure)
-      case "Humidity" | "humidity" => Right(MeasurementType.Humidity)
-      case _                       => Left(s"Invalid measurement type: $str")
+    str.toLowerCase match
+      case "temperature" => Right(MeasurementType.Temperature)
+      case "pressure"    => Right(MeasurementType.Pressure)
+      case "humidity"    => Right(MeasurementType.Humidity)
+      case _             => Left(s"Invalid measurement type: $str")
 
   def routes(program: MeasurementsProgram): Routes[Any, Response] =
     Routes(
