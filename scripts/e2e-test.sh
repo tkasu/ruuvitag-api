@@ -91,7 +91,7 @@ POST_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
     -d "$TELEMETRY_DATA")
 
 HTTP_CODE=$(echo "$POST_RESPONSE" | tail -n1)
-RESPONSE_BODY=$(echo "$POST_RESPONSE" | head -n-1)
+RESPONSE_BODY=$(echo "$POST_RESPONSE" | sed '$d')
 
 echo "HTTP Status: $HTTP_CODE"
 echo "Response: $RESPONSE_BODY"
@@ -112,7 +112,7 @@ GET_RESPONSE=$(curl -s -w "\n%{http_code}" \
     "http://$SERVER_HOST:$SERVER_PORT/telemetry/Temperature/$SENSOR_NAME?from=$FROM_TIME&to=$TO_TIME")
 
 HTTP_CODE=$(echo "$GET_RESPONSE" | tail -n1)
-RESPONSE_BODY=$(echo "$GET_RESPONSE" | head -n-1)
+RESPONSE_BODY=$(echo "$GET_RESPONSE" | sed '$d')
 
 echo "HTTP Status: $HTTP_CODE"
 echo "Response: $RESPONSE_BODY"
@@ -145,7 +145,7 @@ GET_RESPONSE=$(curl -s -w "\n%{http_code}" \
     "http://$SERVER_HOST:$SERVER_PORT/telemetry/Temperature/$SENSOR_NAME")
 
 HTTP_CODE=$(echo "$GET_RESPONSE" | tail -n1)
-RESPONSE_BODY=$(echo "$GET_RESPONSE" | head -n-1)
+RESPONSE_BODY=$(echo "$GET_RESPONSE" | sed '$d')
 
 echo "HTTP Status: $HTTP_CODE"
 echo "Response: $RESPONSE_BODY"

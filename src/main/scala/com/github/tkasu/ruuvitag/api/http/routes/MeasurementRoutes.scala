@@ -17,7 +17,8 @@ object MeasurementRoutes:
 
   // Helper to extract JWT from Authorization header
   private def extractJwt(request: Request): String =
-    request.header(Header.Authorization)
+    request
+      .header(Header.Authorization)
       .map(_.renderedValue)
       .flatMap { authHeader =>
         if authHeader.startsWith("Bearer ")
@@ -55,75 +56,78 @@ object MeasurementRoutes:
         Right(MeasurementType.Temperature)
       case "Pressure" | "pressure" => Right(MeasurementType.Pressure)
       case "Humidity" | "humidity" => Right(MeasurementType.Humidity)
-      case _ => Left(s"Invalid measurement type: $str")
+      case _                       => Left(s"Invalid measurement type: $str")
 
   def routes(program: MeasurementsProgram): Routes[Any, Response] =
     Routes(
       // GET /telemetry/{telemetryType}/{sensorName}?from=<timestamp>&to=<timestamp>
       Method.GET / "telemetry" / string("telemetryType") / string(
         "sensorName"
-      ) -> handler { (telemetryType: String, sensorName: String, req: Request) =>
-        val result = for
-          // Parse query parameters
-          fromStr <- ZIO
-            .fromOption(req.url.queryParams.queryParam("from").headOption)
-            .orElseFail("Missing 'from' query parameter")
-          toStr <- ZIO
-            .fromOption(req.url.queryParams.queryParam("to").headOption)
-            .orElseFail("Missing 'to' query parameter")
+      ) -> handler {
+        (telemetryType: String, sensorName: String, req: Request) =>
+          val result =
+            for
+              // Parse query parameters
+              fromStr <- ZIO
+                .fromOption(req.url.queryParams.queryParam("from").headOption)
+                .orElseFail("Missing 'from' query parameter")
+              toStr <- ZIO
+                .fromOption(req.url.queryParams.queryParam("to").headOption)
+                .orElseFail("Missing 'to' query parameter")
 
-          // Parse timestamps
-          from <- ZIO.fromEither(parseTimestamp(fromStr))
-          to <- ZIO.fromEither(parseTimestamp(toStr))
+              // Parse timestamps
+              from <- ZIO.fromEither(parseTimestamp(fromStr))
+              to <- ZIO.fromEither(parseTimestamp(toStr))
 
-          // Parse measurement type
-          measurementType <- ZIO.fromEither(
-            parseMeasurementType(telemetryType)
-          )
-
-          // Extract JWT and get measurements
-          jwt = extractJwt(req)
-          measurements <- program.getMeasurements(
-            jwt,
-            SensorName(sensorName),
-            measurementType,
-            from,
-            to
-          )
-        yield Response.json(measurements.toJson)
-
-        result.catchAll { error =>
-          ZIO.succeed(
-            Response
-              .json(
-                ErrorResponseDto("BadRequest", error.toString).toJson
+              // Parse measurement type
+              measurementType <- ZIO.fromEither(
+                parseMeasurementType(telemetryType)
               )
-              .status(Status.BadRequest)
-          )
-        }
+
+              // Extract JWT and get measurements
+              jwt = extractJwt(req)
+              measurements <- program.getMeasurements(
+                jwt,
+                SensorName(sensorName),
+                measurementType,
+                from,
+                to
+              )
+            yield Response.json(measurements.toJson)
+
+          result.catchAll { error =>
+            ZIO.succeed(
+              Response
+                .json(
+                  ErrorResponseDto("BadRequest", error.toString).toJson
+                )
+                .status(Status.BadRequest)
+            )
+          }
       },
       // POST /telemetry/{sensorName}
       Method.POST / "telemetry" / string("sensorName") -> handler {
         (sensorName: String, req: Request) =>
-          val result = for
-            // Parse request body
-            bodyStr <- req.body.asString
-            telemetryDataList <- ZIO
-              .fromEither(bodyStr.fromJson[List[TelemetryDataDto]])
-              .mapError(err => s"Invalid JSON: $err")
+          val result =
+            for
+              // Parse request body
+              bodyStr <- req.body.asString
+              telemetryDataList <- ZIO
+                .fromEither(bodyStr.fromJson[List[TelemetryDataDto]])
+                .mapError(err => s"Invalid JSON: $err")
 
-            // Collect all measurements from all telemetry data objects
-            allMeasurements = telemetryDataList.flatMap(_.data)
+              // Collect all measurements from all telemetry data objects
+              allMeasurements = telemetryDataList.flatMap(_.data)
 
-            // Convert to NonEmptyList
-            measurements <- ZIO
-              .fromOption(NonEmptyList.fromIterableOption(allMeasurements))
-              .orElseFail("No measurements provided")
+              // Convert to NonEmptyList
+              measurements <- ZIO
+                .fromOption(NonEmptyList.fromIterableOption(allMeasurements))
+                .orElseFail("No measurements provided")
 
-            // Extract JWT and add measurements
-            jwt = extractJwt(req)
-            _ <- program.addMeasurements(jwt, measurements)
-          yield Response.status(Status.Created)
+              // Extract JWT and add measurements
+              jwt = extractJwt(req)
+              _ <- program.addMeasurements(jwt, measurements)
+            yield Response.status(Status.Created)
 
           result.catchAll { error =>
             ZIO.succeed(

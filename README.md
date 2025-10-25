@@ -8,6 +8,102 @@ WIP Program to persist and get measurements from Ruuvi tags.
 - **SBT 1.11.7** (specified in project/build.properties)
 - **Scala 3.7.3** (managed by SBT)
 
+## Running the Application
+
+### Quick Start
+
+```bash
+# Run with default configuration (localhost:8081)
+make run
+
+# Or using SBT directly
+sbt run
+```
+
+The server will start on `http://0.0.0.0:8081` by default.
+
+### Available Endpoints
+
+- `GET /health` - Health check endpoint
+- `GET /telemetry/{measurementType}/{sensorName}?from={timestamp}&to={timestamp}` - Get measurements
+- `POST /telemetry/{sensorName}` - Add measurements
+
+### Example Usage
+
+```bash
+# Check health
+curl http://localhost:8081/health
+
+# Get temperature measurements (timestamps in milliseconds since epoch)
+curl "http://localhost:8081/telemetry/Temperature/sensor-1?from=1609459200000&to=1640995200000"
+
+# Add measurements
+curl -X POST http://localhost:8081/telemetry/sensor-1 \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "telemetry_type": "temperature",
+      "data": [
+        {
+          "sensor": {"name": "sensor-1"},
+          "measurementType": "Temperature",
+          "timestamp": 1640995200000,
+          "value": 22.5
+        }
+      ]
+    }
+  ]'
+```
+
+## Configuration
+
+The application uses HOCON configuration format. Default configuration is in `src/main/resources/application.conf`.
+
+### Default Configuration
+
+```hocon
+ruuvitag-api {
+  server {
+    host = "0.0.0.0"      # Bind to all interfaces
+    port = 8081           # Default port
+  }
+
+  auth {
+    mode = "noop"         # No authentication (development mode)
+  }
+
+  storage {
+    mode = "in-memory"    # In-memory storage (development mode)
+  }
+}
+```
+
+### Environment Variables
+
+Configuration can be overridden using environment variables:
+
+```bash
+# Change server host and port
+SERVER_HOST=localhost SERVER_PORT=9000 make run
+
+# Or with SBT
+SERVER_HOST=localhost SERVER_PORT=9000 sbt run
+```
+
+Available environment variables:
+- `SERVER_HOST` - Override server host (default: `0.0.0.0`)
+- `SERVER_PORT` - Override server port (default: `8081`)
+- `AUTH_MODE` - Authentication mode (default: `noop`)
+- `STORAGE_MODE` - Storage mode (default: `in-memory`)
+
+### Configuration Modes
+
+**Authentication Modes:**
+- `noop` - No authentication (development only, all requests authenticated as default user)
+
+**Storage Modes:**
+- `in-memory` - In-memory storage (data lost on restart, for development/testing)
+
 ## Development
 
 This project includes a Makefile with standard targets. Run `make help` to see all available commands.

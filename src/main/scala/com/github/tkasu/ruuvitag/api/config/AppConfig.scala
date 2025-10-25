@@ -1,7 +1,7 @@
 package com.github.tkasu.ruuvitag.api.config
 
+import com.typesafe.config.ConfigFactory
 import zio.*
-import zio.config.*
 
 case class ServerConfig(host: String, port: Int)
 
@@ -16,22 +16,35 @@ case class AppConfig(
 )
 
 object AppConfig:
-  val layer: ZLayer[Any, Config.Error, AppConfig] =
-    ZLayer {
-      for
-        host <- ZIO.config[String](
-          Config.string("ruuvitag-api.server.host")
+  // Load configuration directly from Typesafe Config
+  // This bypasses ZIO Config's complex provider chain
+  private val typesafeConfig = ConfigFactory.load()
+
+  val layer: ZLayer[Any, Throwable, AppConfig] =
+    ZLayer.fromZIO {
+      ZIO.attempt {
+        // Read from Typesafe Config with environment variable fallbacks
+        val host = sys.env.getOrElse(
+          "SERVER_HOST",
+          typesafeConfig.getString("ruuvitag-api.server.host")
         )
-        port <- ZIO.config[Int](Config.int("ruuvitag-api.server.port"))
-        authMode <- ZIO.config[String](
-          Config.string("ruuvitag-api.auth.mode")
+        val port = sys.env
+          .get("SERVER_PORT")
+          .map(_.toInt)
+          .getOrElse(typesafeConfig.getInt("ruuvitag-api.server.port"))
+        val authMode = sys.env.getOrElse(
+          "AUTH_MODE",
+          typesafeConfig.getString("ruuvitag-api.auth.mode")
         )
-        storageMode <- ZIO.config[String](
-          Config.string("ruuvitag-api.storage.mode")
+        val storageMode = sys.env.getOrElse(
+          "STORAGE_MODE",
+          typesafeConfig.getString("ruuvitag-api.storage.mode")
         )
-      yield AppConfig(
-        ServerConfig(host, port),
-        AuthConfig(authMode),
-        StorageConfig(storageMode)
-      )
+
+        AppConfig(
+          ServerConfig(host, port),
+          AuthConfig(authMode),
+          StorageConfig(storageMode)
+        )
+      }
     }
