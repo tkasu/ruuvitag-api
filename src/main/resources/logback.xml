@@ -6,11 +6,14 @@
         </encoder>
     </appender>
 
+    <!-- Default log level, can be overridden with LOG_LEVEL environment variable -->
+    <variable name="LOG_LEVEL" value="${LOG_LEVEL:-DEBUG}" />
+
     <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 
     <!-- Set specific log levels for application packages -->
-    <logger name="com.github.tkasu.ruuvitag.api" level="DEBUG" />
+    <logger name="com.github.tkasu.ruuvitag.api" level="${LOG_LEVEL}" />
     <logger name="zio.http" level="INFO" />
 </configuration>
