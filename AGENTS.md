@@ -231,7 +231,56 @@ final case class MeasurementsProgram(
 **Schemas:**
 - Measurement: sensor_name, timestamp (unix ms), value
 
-**Status:** Specification exists but HTTP implementation missing
+#### API Specification Alignment
+
+**IMPORTANT: The OpenAPI specification is the source of truth for the HTTP API contract.**
+
+The implementation uses a **DTO (Data Transfer Object) layer** to ensure the HTTP API matches the OpenAPI spec exactly, while keeping domain models clean and independent.
+
+**Separation of Concerns:**
+
+1. **Domain Models** (`domain/*.scala`) - Internal business logic representation
+   - `Measurement`: Contains full domain context (sensor object, measurementType, timestamp, value)
+   - Rich, type-safe structures optimized for business logic
+   - Independent of HTTP/JSON representation
+
+2. **DTO Models** (`http/dto/*.scala`) - HTTP API representation
+   - `MeasurementDto`: Matches OpenAPI spec exactly (sensor_name, timestamp, value)
+   - Flat structure with snake_case field names
+   - Direct 1:1 mapping to JSON schema in OpenAPI spec
+
+**Why This Matters:**
+
+- **OpenAPI First:** The OpenAPI spec defines the public API contract
+- **Domain Independence:** Domain models can evolve without breaking API contracts
+- **Type Safety:** Conversion between DTOs and domain models is explicit and type-safe
+- **Documentation Alignment:** What's documented in OpenAPI is exactly what the API returns
+
+**DTO Conversion Pattern:**
+
+```scala
+// GET endpoint: Domain → DTO
+val measurements: List[Measurement] = program.getMeasurements(...)
+val dtos: List[MeasurementDto] = measurements.map(MeasurementDto.fromDomain)
+// Returns: [{"sensor_name": "...", "timestamp": 123, "value": 22.5}]
+
+// POST endpoint: DTO → Domain
+val dto: MeasurementDto = parseJson(...)
+val measurement: Measurement = MeasurementDto.toDomain(dto, measurementType)
+```
+
+**Key Files:**
+- `/src/main/resources/openapi.yaml` - OpenAPI specification (source of truth)
+- `/src/main/scala/com/github/tkasu/ruuvitag/api/http/dto/MeasurementDto.scala` - HTTP DTO matching OpenAPI
+- `/src/main/scala/com/github/tkasu/ruuvitag/api/domain/measurement.scala` - Domain model
+- `/src/main/scala/com/github/tkasu/ruuvitag/api/http/routes/MeasurementRoutes.scala` - Conversion between DTOs and domain models
+
+**When Making Changes:**
+
+1. **Update OpenAPI spec first** if changing the public API
+2. **Update DTOs** to match the OpenAPI spec
+3. **Update conversion logic** in routes if domain models change
+4. **Run tests** to ensure conversions work correctly
 
 ## Building and Running
 
@@ -406,11 +455,28 @@ Authorization: Bearer <jwt-token>
 [
   {
     "telemetry_type": "temperature",
-    "data": [22.5, 22.6, 22.7]
+    "data": [
+      {
+        "sensor_name": "sensor-1",
+        "timestamp": 1640995200000,
+        "value": 22.5
+      },
+      {
+        "sensor_name": "sensor-1",
+        "timestamp": 1640995260000,
+        "value": 22.6
+      }
+    ]
   },
   {
     "telemetry_type": "humidity",
-    "data": [45.2, 45.3, 45.1]
+    "data": [
+      {
+        "sensor_name": "sensor-1",
+        "timestamp": 1640995200000,
+        "value": 45.2
+      }
+    ]
   }
 ]
 ```
@@ -425,12 +491,15 @@ Authorization: Bearer <jwt-token>
 Response:
 [
   {
-    "sensor": {"name": "sensor-1"},
-    "measurementType": "Temperature",
-    "timestamp": "2024-01-15T10:30:00Z",
+    "sensor_name": "sensor-1",
+    "timestamp": 1705324200000,
     "value": 22.5
   },
-  ...
+  {
+    "sensor_name": "sensor-1",
+    "timestamp": 1705327800000,
+    "value": 22.7
+  }
 ]
 ```
 

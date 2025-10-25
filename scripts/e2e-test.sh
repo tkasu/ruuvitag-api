@@ -74,10 +74,7 @@ TELEMETRY_DATA='[
         "telemetry_type": "Temperature",
         "data": [
             {
-                "sensor": {
-                    "name": "'$SENSOR_NAME'"
-                },
-                "measurementType": "Temperature",
+                "sensor_name": "'$SENSOR_NAME'",
                 "timestamp": '$TIMESTAMP',
                 "value": 22.5
             }

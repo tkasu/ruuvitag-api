@@ -1,12 +1,15 @@
 package com.github.tkasu.ruuvitag.api.http.dto
 
 import zio.json.*
-import com.github.tkasu.ruuvitag.api.domain.measurement.Measurement
 
-// DTO matching the OpenAPI spec for POST /telemetry/{sensorName}
+/** DTO matching the OpenAPI spec for POST /telemetry/{sensorName}
+  *
+  * Request body structure: [ { "telemetry_type": "temperature", "data": [ {
+  * "sensor_name": "...", "timestamp": 1234567890, "value": 22.5 } ] } ]
+  */
 case class TelemetryDataDto(
     telemetry_type: String,
-    data: List[Measurement]
+    data: List[MeasurementDto]
 )
 
 object TelemetryDataDto:

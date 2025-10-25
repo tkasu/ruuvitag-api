@@ -45,8 +45,7 @@ curl -X POST http://localhost:8081/telemetry/sensor-1 \
       "telemetry_type": "temperature",
       "data": [
         {
-          "sensor": {"name": "sensor-1"},
-          "measurementType": "Temperature",
+          "sensor_name": "sensor-1",
           "timestamp": 1640995200000,
           "value": 22.5
         }

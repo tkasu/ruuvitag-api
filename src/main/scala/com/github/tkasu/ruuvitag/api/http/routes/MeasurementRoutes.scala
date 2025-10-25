@@ -10,6 +10,7 @@ import com.github.tkasu.ruuvitag.api.domain.sensor.SensorName
 import com.github.tkasu.ruuvitag.api.domain.measurementtype.MeasurementType
 import com.github.tkasu.ruuvitag.api.http.dto.{
   TelemetryDataDto,
+  MeasurementDto,
   ErrorResponseDto
 }
 
@@ -93,7 +94,10 @@ object MeasurementRoutes:
                 from,
                 to
               )
-            yield Response.json(measurements.toJson)
+
+              // Convert domain models to DTOs matching OpenAPI spec
+              measurementDtos = measurements.map(MeasurementDto.fromDomain)
+            yield Response.json(measurementDtos.toJson)
 
           result.catchAll { error =>
             ZIO.succeed(
@@ -116,12 +120,27 @@ object MeasurementRoutes:
                 .fromEither(bodyStr.fromJson[List[TelemetryDataDto]])
                 .mapError(err => s"Invalid JSON: $err")
 
-              // Collect all measurements from all telemetry data objects
-              allMeasurements = telemetryDataList.flatMap(_.data)
+              // Convert DTOs to domain models
+              // For each TelemetryDataDto, parse the telemetry_type and convert measurements
+              allMeasurements <- ZIO.foreach(telemetryDataList) {
+                telemetryData =>
+                  for
+                    measurementType <- ZIO.fromEither(
+                      parseMeasurementType(telemetryData.telemetry_type)
+                    )
+                    // Convert each MeasurementDto to domain Measurement
+                    measurements = telemetryData.data.map(
+                      MeasurementDto.toDomain(_, measurementType)
+                    )
+                  yield measurements
+              }
+
+              // Flatten to single list
+              flatMeasurements = allMeasurements.flatten
 
               // Convert to NonEmptyList
               measurements <- ZIO
-                .fromOption(NonEmptyList.fromIterableOption(allMeasurements))
+                .fromOption(NonEmptyList.fromIterableOption(flatMeasurements))
                 .orElseFail("No measurements provided")
 
               // Extract JWT and add measurements
