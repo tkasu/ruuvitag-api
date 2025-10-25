@@ -224,5 +224,74 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         measurements.contains(tempMeasurement1),
         measurements.contains(tempMeasurement2)
       )
+    },
+    test("should handle exact boundary matching (inclusive time range)") {
+      for
+        service <- InMemoryMeasurementsService.make
+        _ <- service.addMeasurements(
+          testUser1,
+          NonEmptyList(tempMeasurement1, tempMeasurement2)
+        )
+        // Query with exact timestamp boundaries
+        measurements <- service.getMeasurements(
+          testUser1,
+          sensor1.name,
+          MeasurementType.Temperature,
+          baseTime, // Exact match on 'from'
+          baseTime.plusHours(1) // Exact match on 'to'
+        )
+      yield assertTrue(
+        measurements.length == 2,
+        measurements.contains(tempMeasurement1),
+        measurements.contains(tempMeasurement2)
+      )
+    },
+    test("should return empty list when querying empty storage") {
+      for
+        service <- InMemoryMeasurementsService.make
+        measurements <- service.getMeasurements(
+          testUser1,
+          sensor1.name,
+          MeasurementType.Temperature,
+          baseTime.minusHours(1),
+          baseTime.plusHours(2)
+        )
+      yield assertTrue(measurements.isEmpty)
+    },
+    test("should handle concurrent additions correctly") {
+      for
+        service <- InMemoryMeasurementsService.make
+        // Add measurements concurrently using ZIO's parallelism
+        _ <- ZIO.collectAllPar(
+          List(
+            service.addMeasurements(testUser1, NonEmptyList(tempMeasurement1)),
+            service.addMeasurements(testUser1, NonEmptyList(tempMeasurement2)),
+            service.addMeasurements(
+              testUser2,
+              NonEmptyList(humidityMeasurement)
+            )
+          )
+        )
+        user1Measurements <- service.getMeasurements(
+          testUser1,
+          sensor1.name,
+          MeasurementType.Temperature,
+          baseTime.minusHours(1),
+          baseTime.plusHours(2)
+        )
+        user2Measurements <- service.getMeasurements(
+          testUser2,
+          sensor1.name,
+          MeasurementType.Humidity,
+          baseTime.minusHours(1),
+          baseTime.plusHours(3)
+        )
+      yield assertTrue(
+        user1Measurements.length == 2,
+        user1Measurements.contains(tempMeasurement1),
+        user1Measurements.contains(tempMeasurement2),
+        user2Measurements.length == 1,
+        user2Measurements.head == humidityMeasurement
+      )
     }
   )
