@@ -5,7 +5,9 @@ import zio.json.*
 /** DTO matching the OpenAPI spec for POST /telemetry/{sensorName}
   *
   * Request body structure: [ { "telemetry_type": "temperature", "data": [ {
-  * "sensor_name": "...", "timestamp": 1234567890, "value": 22.5 } ] } ]
+  * "sensor_name": "...", "timestamp": 1640995200000, "value": 22.5 } ] } ]
+  *
+  * Note: timestamp is in milliseconds since Unix epoch
   */
 case class TelemetryDataDto(
     telemetry_type: String,

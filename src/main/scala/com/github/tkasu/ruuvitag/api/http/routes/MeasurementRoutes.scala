@@ -135,12 +135,11 @@ object MeasurementRoutes:
                   yield measurements
               }
 
-              // Flatten to single list
-              flatMeasurements = allMeasurements.flatten
-
-              // Convert to NonEmptyList
+              // Flatten to single list and convert to NonEmptyList
               measurements <- ZIO
-                .fromOption(NonEmptyList.fromIterableOption(flatMeasurements))
+                .fromOption(
+                  NonEmptyList.fromIterableOption(allMeasurements.flatten)
+                )
                 .orElseFail("No measurements provided")
 
               // Extract JWT and add measurements

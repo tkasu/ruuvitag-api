@@ -16,8 +16,8 @@ case class AppConfig(
 )
 
 object AppConfig:
-  // Load configuration directly from Typesafe Config
-  // This bypasses ZIO Config's complex provider chain
+  // Load configuration using Typesafe Config directly instead of zio-config's descriptor-based approach,
+  // but still provides the configuration as a ZLayer for use in ZIO applications.
   private val typesafeConfig = ConfigFactory.load()
 
   val layer: ZLayer[Any, Throwable, AppConfig] =
