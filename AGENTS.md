@@ -625,13 +625,25 @@ Key dependencies from build.sbt:
 - ❌ No configuration system
 - ❌ No logging
 
+## Current Work
+
+**Active Development:** ZIO HTTP API Implementation
+
+See [TODO.md](./TODO.md) for detailed implementation plan and progress tracking.
+
+The current implementation focuses on creating a runnable HTTP server with:
+- ZIO HTTP for REST endpoints
+- zio-config for application configuration
+- NoopAuth and InMemoryMeasurementsService as default implementations
+- Comprehensive testing including e2e tests
+
 ## Roadmap
 
-### Phase 1: Runnable HTTP Server (Weeks 1-2)
-- [ ] Add http4s dependency
+### Phase 1: Runnable HTTP Server (In Progress - See TODO.md)
+- [ ] Add ZIO HTTP dependency
 - [ ] Implement HTTP routes matching OpenAPI spec
 - [ ] Create Main object and server startup
-- [ ] Add configuration library (zio-config or Typesafe Config)
+- [ ] Add configuration library (zio-config with Typesafe Config)
 - [ ] Basic request/response logging
 
 ### Phase 2: Data Persistence (Weeks 3-4)

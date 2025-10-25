@@ -2,6 +2,7 @@ package com.github.tkasu.ruuvitag.api.programs
 
 import java.time.OffsetDateTime
 import zio.*
+import zio.prelude.NonEmptyList
 import com.github.tkasu.ruuvitag.api.domain.measurement.Measurement
 import com.github.tkasu.ruuvitag.api.domain.measurementtype.*
 import com.github.tkasu.ruuvitag.api.domain.sensor.*
@@ -27,3 +28,17 @@ final case class MeasurementsProgram(
       )
       .getOrElse(ZIO.succeed(List.empty))
   yield measurements
+
+  def addMeasurements(
+      userJwt: String,
+      measurements: NonEmptyList[Measurement]
+  ): Task[Unit] = for
+    maybeUser <- auth.findUser(userJwt)
+    _ <- maybeUser match
+      case Some(user) =>
+        measurementsService.addMeasurements(user, measurements)
+      case None =>
+        ZIO.fail(
+          new IllegalArgumentException("Invalid authentication token")
+        )
+  yield ()
