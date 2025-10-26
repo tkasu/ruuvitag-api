@@ -10,6 +10,26 @@ paths:
     get:
       summary: Return array of latest telemetry for given telemetryType and sensorName
       parameters:
+        - name: telemetryType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - temperature
+              - humidity
+              - pressure
+              - battery
+              - tx_power
+              - movement_counter
+              - measurement_sequence_number
+          description: Type of telemetry measurement to retrieve
+        - name: sensorName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the sensor
         - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
@@ -24,6 +44,12 @@ paths:
     post:
       summary: Send new telemetries to server for a given sensor
       parameters:
+        - name: sensorName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the sensor
         - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
@@ -36,6 +62,15 @@ paths:
                 properties:
                   telemetry_type:
                     type: string
+                    enum:
+                      - temperature
+                      - humidity
+                      - pressure
+                      - battery
+                      - tx_power
+                      - movement_counter
+                      - measurement_sequence_number
+                    description: Type of telemetry measurement
                   data:
                     type: array
                     items:
