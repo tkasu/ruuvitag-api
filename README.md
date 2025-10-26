@@ -25,6 +25,7 @@ The server will start on `http://0.0.0.0:8081` by default.
 ### Available Endpoints
 
 - `GET /health` - Health check endpoint
+- `GET /metrics` - Prometheus metrics endpoint
 - `GET /telemetry/{measurementType}/{sensorName}?from={timestamp}&to={timestamp}` - Get measurements
 - `POST /telemetry/{sensorName}` - Add measurements
 
@@ -33,6 +34,9 @@ The server will start on `http://0.0.0.0:8081` by default.
 ```bash
 # Check health
 curl http://localhost:8081/health
+
+# Get Prometheus metrics
+curl http://localhost:8081/metrics
 
 # Get temperature measurements (timestamps in milliseconds since epoch)
 curl "http://localhost:8081/telemetry/Temperature/sensor-1?from=1609459200000&to=1640995200000"

@@ -3,6 +3,8 @@ package com.github.tkasu.ruuvitag.api
 import zio.*
 import zio.http.*
 import zio.logging.backend.SLF4J
+import zio.metrics.connectors.{prometheus, MetricsConfig}
+import zio.metrics.connectors.prometheus.PrometheusPublisher
 import com.github.tkasu.ruuvitag.api.config.AppConfig
 import com.github.tkasu.ruuvitag.api.services.*
 import com.github.tkasu.ruuvitag.api.programs.MeasurementsProgram
@@ -48,7 +50,7 @@ object Main extends ZIOAppDefault:
   // Create the HTTP application
   private def createApp(
       config: AppConfig
-  ): ZIO[Any, Throwable, Routes[Any, Response]] =
+  ): ZIO[Any, Throwable, Routes[PrometheusPublisher, Response]] =
     for
       _ <- ZIO.logInfo(s"Initializing services...")
       (authService, measurementsService, healthCheck) <- initializeServices(
@@ -93,7 +95,10 @@ object Main extends ZIOAppDefault:
           Server.defaultWith(serverConfig =>
             serverConfig
               .binding(config.server.host, config.server.port)
-          )
+          ),
+          ZLayer.succeed(MetricsConfig(1.second)),
+          prometheus.prometheusLayer,
+          prometheus.publisherLayer
         )
     yield ()
 

@@ -1,18 +1,21 @@
 package com.github.tkasu.ruuvitag.api.http.routes
 
-import zio.http.{Routes as ZioRoutes, Response}
+import zio.http.{Routes as ZioRoutes, Response, Middleware}
 import com.github.tkasu.ruuvitag.api.programs.MeasurementsProgram
 import com.github.tkasu.ruuvitag.api.services.HealthCheck
+import zio.metrics.connectors.prometheus.PrometheusPublisher
 import com.github.tkasu.ruuvitag.api.http.middleware.RequestLoggingMiddleware
 
 object Routes:
+
   def make(
       healthCheck: HealthCheck,
       measurementsProgram: MeasurementsProgram
-  ): ZioRoutes[Any, Response] =
+  ): ZioRoutes[PrometheusPublisher, Response] =
     val allRoutes =
       HealthRoutes.routes(healthCheck) ++ MeasurementRoutes.routes(
         measurementsProgram
-      )
-    // Apply request logging middleware for debug logging
-    allRoutes @@ RequestLoggingMiddleware()
+      ) ++ MetricsRoutes.routes
+
+    // Apply request logging middleware for debug logging and metrics middleware to track HTTP requests
+    allRoutes @@ RequestLoggingMiddleware() @@ Middleware.metrics()
