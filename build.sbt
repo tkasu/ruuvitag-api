@@ -8,6 +8,7 @@ lazy val zioConfigVersion = "4.0.2"
 lazy val zioLoggingVersion = "2.3.2"
 lazy val logbackVersion = "1.5.6"
 lazy val zioMetricsConnectorsVersion = "2.3.1"
+lazy val uuidGeneratorVersion = "5.1.0"
 
 lazy val root = project
   .in(file("."))
@@ -37,6 +38,9 @@ lazy val root = project
 
       // Metrics
       "dev.zio" %% "zio-metrics-connectors-prometheus" % zioMetricsConnectorsVersion,
+
+      // UUID Generation
+      "com.fasterxml.uuid" % "java-uuid-generator" % uuidGeneratorVersion,
 
       // Testing
       "dev.zio" %% "zio-test" % zioVersion % Test,

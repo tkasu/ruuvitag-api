@@ -9,6 +9,8 @@ paths:
   /telemetry/{telemetryType}/{sensorName}:
     get:
       summary: Return array of latest telemetry for given telemetryType and sensorName
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Array of telemetry structs
@@ -21,6 +23,8 @@ paths:
   /telemetry/{sensorName}:
     post:
       summary: Send new telemetries to server for a given sensor
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
@@ -41,6 +45,21 @@ paths:
           description: Created
 
 components:
+  parameters:
+    RequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: |
+        Request correlation ID for tracking and debugging. If not provided, 
+        the server will generate a UUID and include it in the request processing.
+        This ID is used in all log entries for the request, enabling correlation
+        of log lines in concurrent scenarios.
+      schema:
+        type: string
+        format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+  
   schemas:
     Measurement:
       properties:
