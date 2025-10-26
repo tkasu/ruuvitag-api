@@ -2,7 +2,9 @@ package com.github.tkasu.ruuvitag.api.http.routes
 
 import zio.*
 import zio.http.*
+import zio.json.*
 import zio.metrics.connectors.prometheus.PrometheusPublisher
+import com.github.tkasu.ruuvitag.api.http.dto.ErrorResponseDto
 
 object MetricsRoutes:
   def routes: Routes[PrometheusPublisher, Response] =
