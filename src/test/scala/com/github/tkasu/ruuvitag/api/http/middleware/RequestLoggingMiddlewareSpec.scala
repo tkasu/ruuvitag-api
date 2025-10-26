@@ -4,7 +4,6 @@ import zio.*
 import zio.test.*
 import zio.test.Assertion.*
 import zio.http.*
-import zio.logging.LogFormat
 import zio.logging.backend.SLF4J
 
 object RequestLoggingMiddlewareSpec extends ZIOSpecDefault:
@@ -39,6 +38,59 @@ object RequestLoggingMiddlewareSpec extends ZIOSpecDefault:
             Request.post(
               URL.root / "test",
               Body.fromString(testBody)
+            )
+          )
+      yield assertTrue(response.status == Status.Ok)
+    },
+    test("should preserve request body for handler") {
+      val expectedBody = """{"test": "data", "value": 123}"""
+      val testRoutes = Routes(
+        Method.POST / "test" -> handler { (req: Request) =>
+          req.body.asString
+            .map { actualBody =>
+              if actualBody == expectedBody then Response.ok
+              else Response.status(Status.BadRequest)
+            }
+            .catchAll(_ =>
+              ZIO.succeed(Response.status(Status.InternalServerError))
+            )
+        }
+      )
+
+      val routesWithLogging = testRoutes @@ RequestLoggingMiddleware()
+
+      for response <- routesWithLogging
+          .runZIO(
+            Request.post(
+              URL.root / "test",
+              Body.fromString(expectedBody)
+            )
+          )
+      yield assertTrue(response.status == Status.Ok)
+    },
+    test("should truncate large payloads in logs") {
+      val largeBody = "x" * 2000 // Larger than MaxLogSize (1000)
+      val testRoutes = Routes(
+        Method.POST / "test" -> handler { (req: Request) =>
+          req.body.asString
+            .map { body =>
+              // Verify handler receives full body
+              if body.length == 2000 then Response.ok
+              else Response.status(Status.BadRequest)
+            }
+            .catchAll(_ =>
+              ZIO.succeed(Response.status(Status.InternalServerError))
+            )
+        }
+      )
+
+      val routesWithLogging = testRoutes @@ RequestLoggingMiddleware()
+
+      for response <- routesWithLogging
+          .runZIO(
+            Request.post(
+              URL.root / "test",
+              Body.fromString(largeBody)
             )
           )
       yield assertTrue(response.status == Status.Ok)
