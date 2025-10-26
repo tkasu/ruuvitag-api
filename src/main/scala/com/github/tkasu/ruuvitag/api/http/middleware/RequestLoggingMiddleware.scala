@@ -78,7 +78,15 @@ object RequestLoggingMiddleware:
                       else ZIO.unit
 
                     // Reconstruct request with fresh body for handler
-                    newRequest = request.copy(body = Body.fromChunk(chunk))
+                    // Remove Content-Length header as it may not match the reconstructed body
+                    newRequest = request.copy(
+                      body = Body.fromChunk(chunk),
+                      headers = Headers(
+                        request.headers.toList.filterNot(h =>
+                          h.headerName.equalsIgnoreCase("content-length")
+                        )
+                      )
+                    )
                   yield newRequest
                 case _ =>
                   ZIO.succeed(request)
@@ -100,6 +108,6 @@ object RequestLoggingMiddleware:
                   )
                 }
               }
-            yield response).catchAll(err => ZIO.succeed(err))
+            yield response).catchAll(err => ZIO.fail(err))
           }
         }
