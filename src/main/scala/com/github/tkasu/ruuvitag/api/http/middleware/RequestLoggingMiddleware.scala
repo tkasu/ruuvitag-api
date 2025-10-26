@@ -2,7 +2,7 @@ package com.github.tkasu.ruuvitag.api.http.middleware
 
 import zio.*
 import zio.http.*
-import java.util.UUID
+import com.fasterxml.uuid.Generators
 
 object RequestLoggingMiddleware:
 
@@ -12,14 +12,17 @@ object RequestLoggingMiddleware:
   // Header name for request ID
   private val RequestIdHeaderName = "X-Request-Id"
 
+  // UUID v7 generator for time-ordered request IDs
+  private val uuidGenerator = Generators.timeBasedEpochGenerator()
+
   /** Generate a UUID v7 for request tracking.
     *
-    * Note: Java's UUID.randomUUID() generates v4 UUIDs. For true v7 support, we
-    * would need a library. For now, we use v4 which is sufficient for request
-    * correlation.
+    * Uses time-based UUID v7 which includes a timestamp, making request IDs
+    * naturally ordered by time. This is useful for request correlation and
+    * debugging.
     */
   private def generateRequestId(): String =
-    UUID.randomUUID().toString
+    uuidGenerator.generate().toString
 
   /** Extract request ID from headers or generate a new one. */
   private def getOrGenerateRequestId(request: Request): String =
