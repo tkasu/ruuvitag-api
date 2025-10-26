@@ -11,6 +11,10 @@ object HealthRoutes:
     Routes(
       Method.GET / "health" -> handler {
         (for
+          _ <-
+            com.github.tkasu.ruuvitag.api.http.routes.Routes.httpRequestsTotal.increment
+          _ <-
+            com.github.tkasu.ruuvitag.api.http.routes.Routes.httpHealthCheckRequests.increment
           status <- healthCheck.status()
           response <- ZIO.succeed(
             Response.json(status.toJson)
