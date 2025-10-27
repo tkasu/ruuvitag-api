@@ -9,6 +9,9 @@ lazy val zioLoggingVersion = "2.3.2"
 lazy val logbackVersion = "1.5.6"
 lazy val zioMetricsConnectorsVersion = "2.3.1"
 lazy val uuidGeneratorVersion = "5.1.0"
+lazy val quillVersion = "4.8.6"
+lazy val sqliteJdbcVersion = "3.47.1.0"
+lazy val hikariCpVersion = "6.2.1"
 
 lazy val root = project
   .in(file("."))
@@ -41,6 +44,11 @@ lazy val root = project
 
       // UUID Generation
       "com.fasterxml.uuid" % "java-uuid-generator" % uuidGeneratorVersion,
+
+      // Database - Quill with SQLite
+      "io.getquill" %% "quill-jdbc-zio" % quillVersion,
+      "org.xerial" % "sqlite-jdbc" % sqliteJdbcVersion,
+      "com.zaxxer" % "HikariCP" % hikariCpVersion,
 
       // Testing
       "dev.zio" %% "zio-test" % zioVersion % Test,
