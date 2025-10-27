@@ -148,7 +148,9 @@ object MeasurementRoutes:
                 measurements <- ZIO.foreach(telemetryData.data) { dto =>
                   ZIO
                     .attempt(MeasurementDto.toDomain(dto, measurementType))
-                    .mapError(e => s"Invalid measurement data for MAC address '${dto.mac_address}': ${e.getMessage}")
+                    .mapError(e =>
+                      s"Invalid measurement data for MAC address '${dto.mac_address}': ${e.getMessage}"
+                    )
                 }
               yield measurements
             }
