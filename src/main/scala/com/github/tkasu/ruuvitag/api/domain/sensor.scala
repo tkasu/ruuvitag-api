@@ -7,15 +7,15 @@ object sensor:
     *
     * Validation: - Must match pattern XX:XX:XX:XX:XX:XX where X is a hex digit
     * \- Case insensitive (stored in uppercase)
+    *
+    * Note: Constructor is private to enforce normalization through the
+    * companion object's apply method.
     */
-  case class MacAddress(value: String):
+  case class MacAddress private (value: String):
     require(
       MacAddress.isValid(value),
       s"Invalid MAC address format: $value. Expected format: XX:XX:XX:XX:XX:XX"
     )
-
-    /** Returns the MAC address in uppercase */
-    def normalized: String = value.toUpperCase
 
   object MacAddress:
     private val macAddressPattern =
