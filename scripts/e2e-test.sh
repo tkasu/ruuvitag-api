@@ -67,14 +67,14 @@ fi
 
 # Test 2: POST measurement
 echo -e "\n${YELLOW}Test 2: POST measurement${NC}"
-SENSOR_NAME="test-sensor"
+MAC_ADDRESS="FE:26:88:7A:66:66"
 TIMESTAMP=$(date +%s)000  # Unix timestamp in milliseconds
 TELEMETRY_DATA='[
     {
         "telemetry_type": "Temperature",
         "data": [
             {
-                "sensor_name": "'$SENSOR_NAME'",
+                "mac_address": "'$MAC_ADDRESS'",
                 "timestamp": '$TIMESTAMP',
                 "value": 22.5
             }
@@ -83,7 +83,7 @@ TELEMETRY_DATA='[
 ]'
 
 POST_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-    "http://$SERVER_HOST:$SERVER_PORT/telemetry/$SENSOR_NAME" \
+    "http://$SERVER_HOST:$SERVER_PORT/telemetry" \
     -H "Content-Type: application/json" \
     -d "$TELEMETRY_DATA")
 
@@ -106,7 +106,7 @@ FROM_TIME="2020-01-01T00:00:00Z"
 TO_TIME="2030-12-31T23:59:59Z"
 
 GET_RESPONSE=$(curl -s -w "\n%{http_code}" \
-    "http://$SERVER_HOST:$SERVER_PORT/telemetry/Temperature/$SENSOR_NAME?from=$FROM_TIME&to=$TO_TIME")
+    "http://$SERVER_HOST:$SERVER_PORT/telemetry/Temperature?macAddress=$MAC_ADDRESS&from=$FROM_TIME&to=$TO_TIME")
 
 HTTP_CODE=$(echo "$GET_RESPONSE" | tail -n1)
 RESPONSE_BODY=$(echo "$GET_RESPONSE" | sed '$d')
@@ -122,10 +122,10 @@ else
 fi
 
 # Verify the response contains the measurement
-if echo "$RESPONSE_BODY" | grep -q "$SENSOR_NAME"; then
-    echo -e "${GREEN}✓ Response contains sensor name${NC}"
+if echo "$RESPONSE_BODY" | grep -q "$MAC_ADDRESS"; then
+    echo -e "${GREEN}✓ Response contains MAC address${NC}"
 else
-    echo -e "${RED}✗ Response does not contain sensor name${NC}"
+    echo -e "${RED}✗ Response does not contain MAC address${NC}"
     exit 1
 fi
 
@@ -136,10 +136,10 @@ else
     exit 1
 fi
 
-# Test 4: GET with invalid parameters
+# Test 4: GET with missing parameters
 echo -e "\n${YELLOW}Test 4: GET with missing parameters (should fail)${NC}"
 GET_RESPONSE=$(curl -s -w "\n%{http_code}" \
-    "http://$SERVER_HOST:$SERVER_PORT/telemetry/Temperature/$SENSOR_NAME")
+    "http://$SERVER_HOST:$SERVER_PORT/telemetry/Temperature?macAddress=$MAC_ADDRESS")
 
 HTTP_CODE=$(echo "$GET_RESPONSE" | tail -n1)
 RESPONSE_BODY=$(echo "$GET_RESPONSE" | sed '$d')
