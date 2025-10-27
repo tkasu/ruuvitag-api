@@ -16,23 +16,29 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
 object Main extends ZIOAppDefault:
 
-  // Create DataSource for SQLite
+  // Create DataSource for SQLite with proper resource management
   private def createDataSource(
       dbPath: String
-  ): ZIO[Any, Throwable, DataSource] =
-    ZIO.attempt {
-      val hikariConfig = new HikariConfig()
-      hikariConfig.setJdbcUrl(s"jdbc:sqlite:$dbPath")
-      hikariConfig.setDriverClassName("org.sqlite.JDBC")
-      hikariConfig.setMaximumPoolSize(10)
-      hikariConfig.setConnectionTimeout(30000)
-      new HikariDataSource(hikariConfig)
-    }
+  ): ZIO[Scope, Throwable, DataSource] =
+    ZIO.acquireRelease(
+      ZIO.attempt {
+        val hikariConfig = new HikariConfig()
+        hikariConfig.setJdbcUrl(s"jdbc:sqlite:$dbPath")
+        hikariConfig.setDriverClassName("org.sqlite.JDBC")
+        hikariConfig.setMaximumPoolSize(10)
+        hikariConfig.setConnectionTimeout(30000)
+        new HikariDataSource(hikariConfig)
+      }
+    )(ds =>
+      ZIO
+        .attempt(ds.asInstanceOf[HikariDataSource].close())
+        .orDie
+    )
 
   // Initialize services based on configuration
   private def initializeServices(
       config: AppConfig
-  ): ZIO[Any, Throwable, (Auth, MeasurementsService, HealthCheck)] =
+  ): ZIO[Scope, Throwable, (Auth, MeasurementsService, HealthCheck)] =
     for
       // Initialize Auth service
       authService <- config.auth.mode match
@@ -76,7 +82,7 @@ object Main extends ZIOAppDefault:
   // Create the HTTP application
   private def createApp(
       config: AppConfig
-  ): ZIO[Any, Throwable, Routes[PrometheusPublisher, Response]] =
+  ): ZIO[Scope, Throwable, Routes[PrometheusPublisher, Response]] =
     for
       _ <- ZIO.logInfo(s"Initializing services...")
       (authService, measurementsService, healthCheck) <- initializeServices(
@@ -99,34 +105,36 @@ object Main extends ZIOAppDefault:
 
   // Main application
   def run: ZIO[Any, Throwable, Unit] =
-    val program = for
-      _ <- ZIO.logInfo("Starting ruuvitag-api...")
+    val program = ZIO.scoped {
+      for
+        _ <- ZIO.logInfo("Starting ruuvitag-api...")
 
-      // Load configuration
-      config <- ZIO.service[AppConfig]
-      _ <- ZIO.logInfo(
-        s"Configuration loaded: ${config.server.host}:${config.server.port}"
-      )
-
-      // Create HTTP application
-      app <- createApp(config)
-
-      // Start server
-      _ <- ZIO.logInfo(
-        s"Starting HTTP server on ${config.server.host}:${config.server.port}"
-      )
-      _ <- Server
-        .serve(app)
-        .provide(
-          Server.defaultWith(serverConfig =>
-            serverConfig
-              .binding(config.server.host, config.server.port)
-          ),
-          ZLayer.succeed(MetricsConfig(1.second)),
-          prometheus.prometheusLayer,
-          prometheus.publisherLayer
+        // Load configuration
+        config <- ZIO.service[AppConfig]
+        _ <- ZIO.logInfo(
+          s"Configuration loaded: ${config.server.host}:${config.server.port}"
         )
-    yield ()
+
+        // Create HTTP application
+        app <- createApp(config)
+
+        // Start server
+        _ <- ZIO.logInfo(
+          s"Starting HTTP server on ${config.server.host}:${config.server.port}"
+        )
+        _ <- Server
+          .serve(app)
+          .provide(
+            Server.defaultWith(serverConfig =>
+              serverConfig
+                .binding(config.server.host, config.server.port)
+            ),
+            ZLayer.succeed(MetricsConfig(1.second)),
+            prometheus.prometheusLayer,
+            prometheus.publisherLayer
+          )
+      yield ()
+    }
 
     program.provide(
       AppConfig.layer,

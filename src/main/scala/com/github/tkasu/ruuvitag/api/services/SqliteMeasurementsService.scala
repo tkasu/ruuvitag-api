@@ -139,8 +139,13 @@ object SqliteMeasurementsService:
       try
         val statement = connection.createStatement()
         try
-          // SQLite supports executing multiple statements
-          statement.executeUpdate(schema)
+          // Split schema into individual statements and execute each separately
+          // SQLite JDBC driver doesn't support executing multiple statements in one call
+          schema
+            .split(";")
+            .map(_.trim)
+            .filter(_.nonEmpty)
+            .foreach(stmt => statement.executeUpdate(stmt))
         finally
           statement.close()
       finally connection.close()

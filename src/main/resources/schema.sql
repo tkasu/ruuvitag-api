@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS measurements (
     measurement_type TEXT NOT NULL,
     timestamp INTEGER NOT NULL,  -- Unix timestamp in milliseconds
     value REAL NOT NULL,
-    created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
+    created_at INTEGER DEFAULT (unixepoch('now', 'subsec') * 1000)
 );
 
 -- Index for efficient querying by user, MAC address, and measurement type

@@ -58,11 +58,15 @@ object SqliteMeasurementsServiceSpec extends ZIOSpecDefault:
   )
 
   // Create a test database with a unique name for each test run
+  // Uses system temp directory to work in any environment (CI, local, etc.)
   private def createTestDataSource: ZIO[Scope, Throwable, DataSource] =
     ZIO
       .acquireRelease(
         ZIO.attempt {
-          val testDbPath = s"data/test-${UUID.randomUUID()}.db"
+          // Use system temp directory for test databases
+          val testDbFile =
+            Files.createTempFile("ruuvitag-test-", ".db")
+          val testDbPath = testDbFile.toString
           val hikariConfig = new HikariConfig()
           hikariConfig.setJdbcUrl(s"jdbc:sqlite:$testDbPath")
           hikariConfig.setDriverClassName("org.sqlite.JDBC")
