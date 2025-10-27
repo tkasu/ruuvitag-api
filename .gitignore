@@ -1,6 +1,30 @@
-/.bsp/
+# SBT
 target/
-.idea
+project/target/
+project/project/
+
+# Bloop (Build Server Protocol)
+.bsp/
+.bloop/
+project/.bloop/
+
+# Metals (Scala Language Server)
+.metals/
+.metals.sbt
+metals.sbt
+
+# IntelliJ IDEA
+.idea/
+.idea_modules/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Mac OS
+.DS_Store
 
 # SQLite databases (keep only .gitkeep)
 data/*.db
