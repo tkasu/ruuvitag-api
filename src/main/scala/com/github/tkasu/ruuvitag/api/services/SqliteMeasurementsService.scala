@@ -132,9 +132,11 @@ object SqliteMeasurementsService:
     */
   def initSchema(dataSource: DataSource): Task[Unit] =
     ZIO.attempt {
-      val schema = scala.io.Source
-        .fromResource("schema.sql")
-        .mkString
+      val source = scala.io.Source.fromResource("schema.sql")
+      val schema =
+        try source.mkString
+        finally source.close()
+
       val connection = dataSource.getConnection()
       try
         val statement = connection.createStatement()
