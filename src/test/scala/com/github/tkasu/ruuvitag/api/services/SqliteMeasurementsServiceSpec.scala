@@ -59,29 +59,32 @@ object SqliteMeasurementsServiceSpec extends ZIOSpecDefault:
 
   // Create a test database with a unique name for each test run
   private def createTestDataSource: ZIO[Scope, Throwable, DataSource] =
-    ZIO.acquireRelease(
-      ZIO.attempt {
-        val testDbPath = s"data/test-${UUID.randomUUID()}.db"
-        val hikariConfig = new HikariConfig()
-        hikariConfig.setJdbcUrl(s"jdbc:sqlite:$testDbPath")
-        hikariConfig.setDriverClassName("org.sqlite.JDBC")
-        hikariConfig.setMaximumPoolSize(5)
-        hikariConfig.setConnectionTimeout(30000)
-        val dataSource = new HikariDataSource(hikariConfig)
-        (dataSource, testDbPath)
+    ZIO
+      .acquireRelease(
+        ZIO.attempt {
+          val testDbPath = s"data/test-${UUID.randomUUID()}.db"
+          val hikariConfig = new HikariConfig()
+          hikariConfig.setJdbcUrl(s"jdbc:sqlite:$testDbPath")
+          hikariConfig.setDriverClassName("org.sqlite.JDBC")
+          hikariConfig.setMaximumPoolSize(5)
+          hikariConfig.setConnectionTimeout(30000)
+          val dataSource = new HikariDataSource(hikariConfig)
+          (dataSource, testDbPath)
+        }
+      ) { case (dataSource, testDbPath) =>
+        ZIO.attempt {
+          dataSource.close()
+          // Clean up test database file
+          val dbFile = Paths.get(testDbPath)
+          val journalFile = Paths.get(s"$testDbPath-journal")
+          Files.deleteIfExists(dbFile)
+          Files.deleteIfExists(journalFile)
+        }.orDie
       }
-    ) { case (dataSource, testDbPath) =>
-      ZIO.attempt {
-        dataSource.close()
-        // Clean up test database file
-        val dbFile = Paths.get(testDbPath)
-        val journalFile = Paths.get(s"$testDbPath-journal")
-        Files.deleteIfExists(dbFile)
-        Files.deleteIfExists(journalFile)
-      }.orDie
-    }.map(_._1)
+      .map(_._1)
 
-  private def createTestService: ZIO[Scope, Throwable, SqliteMeasurementsService] =
+  private def createTestService
+      : ZIO[Scope, Throwable, SqliteMeasurementsService] =
     for
       dataSource <- createTestDataSource
       _ <- SqliteMeasurementsService.initSchema(dataSource)
@@ -179,7 +182,11 @@ object SqliteMeasurementsServiceSpec extends ZIOSpecDefault:
           service <- createTestService
           _ <- service.addMeasurements(
             testUser1,
-            NonEmptyList(tempMeasurement1, tempMeasurement2, humidityMeasurement)
+            NonEmptyList(
+              tempMeasurement1,
+              tempMeasurement2,
+              humidityMeasurement
+            )
           )
           // Query only the first hour
           earlyMeasurements <- service.getMeasurements(

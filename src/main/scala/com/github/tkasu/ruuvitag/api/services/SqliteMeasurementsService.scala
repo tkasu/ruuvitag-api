@@ -136,15 +136,12 @@ object SqliteMeasurementsService:
         .fromResource("schema.sql")
         .mkString
       val connection = dataSource.getConnection()
-      try {
+      try
         val statement = connection.createStatement()
-        try {
+        try
           // SQLite supports executing multiple statements
           statement.executeUpdate(schema)
-        } finally {
+        finally
           statement.close()
-        }
-      } finally {
-        connection.close()
-      }
+      finally connection.close()
     }
