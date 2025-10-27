@@ -141,12 +141,20 @@ object SqliteMeasurementsService:
         try
           // Split schema into individual statements and execute each separately
           // SQLite JDBC driver doesn't support executing multiple statements in one call
-          schema
+          val statements = schema
             .split(";")
             .map(_.trim)
             .filter(_.nonEmpty)
-            .foreach(stmt => statement.executeUpdate(stmt))
-        finally
-          statement.close()
+
+          statements.foreach { stmt =>
+            try statement.executeUpdate(stmt)
+            catch
+              case e: Exception =>
+                throw new RuntimeException(
+                  s"Failed to execute schema statement: ${stmt.take(100)}...",
+                  e
+                )
+          }
+        finally statement.close()
       finally connection.close()
     }

@@ -27,11 +27,12 @@ object Main extends ZIOAppDefault:
         hikariConfig.setDriverClassName("org.sqlite.JDBC")
         hikariConfig.setMaximumPoolSize(10)
         hikariConfig.setConnectionTimeout(30000)
-        new HikariDataSource(hikariConfig)
+        val hikariDataSource = new HikariDataSource(hikariConfig)
+        hikariDataSource
       }
-    )(ds =>
+    )(hikariDataSource =>
       ZIO
-        .attempt(ds.asInstanceOf[HikariDataSource].close())
+        .attempt(hikariDataSource.close())
         .orDie
     )
 
