@@ -19,11 +19,12 @@ object sensor:
 
   object MacAddress:
     private val macAddressPattern =
-      "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$".r
+      "^([0-9A-F]{2}:){5}[0-9A-F]{2}$".r
 
-    /** Validates MAC address format */
+    /** Validates MAC address format (normalizes to uppercase before validation)
+      */
     def isValid(address: String): Boolean =
-      macAddressPattern.matches(address)
+      macAddressPattern.matches(address.toUpperCase)
 
     /** Creates a MacAddress from string, normalizing to uppercase */
     def apply(value: String): MacAddress =
