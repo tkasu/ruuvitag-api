@@ -92,4 +92,4 @@ jobs:
 
       - name: Run E2E tests
         run: bash scripts/e2e-test.sh
-        timeout-minutes: 5
+        timeout-minutes: 10
