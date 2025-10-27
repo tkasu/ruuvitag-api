@@ -7,7 +7,9 @@ case class ServerConfig(host: String, port: Int)
 
 case class AuthConfig(mode: String)
 
-case class StorageConfig(mode: String)
+case class DatabaseConfig(path: String)
+
+case class StorageConfig(mode: String, database: DatabaseConfig)
 
 case class AppConfig(
     server: ServerConfig,
@@ -40,11 +42,15 @@ object AppConfig:
           "STORAGE_MODE",
           typesafeConfig.getString("ruuvitag-api.storage.mode")
         )
+        val dbPath = sys.env.getOrElse(
+          "DATABASE_PATH",
+          typesafeConfig.getString("ruuvitag-api.storage.database.path")
+        )
 
         AppConfig(
           ServerConfig(host, port),
           AuthConfig(authMode),
-          StorageConfig(storageMode)
+          StorageConfig(storageMode, DatabaseConfig(dbPath))
         )
       }
     }

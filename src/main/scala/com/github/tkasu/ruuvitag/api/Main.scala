@@ -11,8 +11,23 @@ import com.github.tkasu.ruuvitag.api.programs.MeasurementsProgram
 import com.github.tkasu.ruuvitag.api.http.routes.Routes
 import com.github.tkasu.ruuvitag.api.domain.user.{User, UserId, UserName}
 import java.util.UUID
+import javax.sql.DataSource
+import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
 object Main extends ZIOAppDefault:
+
+  // Create DataSource for SQLite
+  private def createDataSource(
+      dbPath: String
+  ): ZIO[Any, Throwable, DataSource] =
+    ZIO.attempt {
+      val hikariConfig = new HikariConfig()
+      hikariConfig.setJdbcUrl(s"jdbc:sqlite:$dbPath")
+      hikariConfig.setDriverClassName("org.sqlite.JDBC")
+      hikariConfig.setMaximumPoolSize(10)
+      hikariConfig.setConnectionTimeout(30000)
+      new HikariDataSource(hikariConfig)
+    }
 
   // Initialize services based on configuration
   private def initializeServices(
@@ -38,6 +53,17 @@ object Main extends ZIOAppDefault:
       // Initialize MeasurementsService
       measurementsService <- config.storage.mode match
         case "in-memory" => InMemoryMeasurementsService.make
+        case "sqlite" =>
+          for
+            dataSource <- createDataSource(config.storage.database.path)
+            _ <- SqliteMeasurementsService.initSchema(dataSource)
+            service = SqliteMeasurementsService(
+              io.getquill.jdbczio.Quill.Sqlite(
+                io.getquill.SnakeCase,
+                dataSource
+              )
+            )
+          yield service
         case other =>
           ZIO.fail(
             new IllegalArgumentException(s"Unknown storage mode: $other")
