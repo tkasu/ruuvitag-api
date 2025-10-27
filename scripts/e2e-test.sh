@@ -11,8 +11,9 @@ NC='\033[0m' # No Color
 # Configuration
 SERVER_PORT=8081
 SERVER_HOST="localhost"
-MAX_RETRIES=30
+MAX_RETRIES=60  # Increased for CI environment
 RETRY_DELAY=1
+SERVER_LOG="/tmp/ruuvitag-api-e2e-server.log"
 
 echo -e "${YELLOW}Starting e2e test...${NC}"
 
@@ -30,13 +31,15 @@ trap cleanup EXIT INT TERM
 
 # Start the server in background
 echo -e "${YELLOW}Starting server on port $SERVER_PORT...${NC}"
-sbt run > /dev/null 2>&1 &
+echo "Server logs will be written to: $SERVER_LOG"
+sbt run > "$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 
 echo "Server PID: $SERVER_PID"
 
 # Wait for server to be ready
 echo -e "${YELLOW}Waiting for server to be ready...${NC}"
+echo "This may take a while in CI as SBT needs to initialize..."
 RETRIES=0
 while [ $RETRIES -lt $MAX_RETRIES ]; do
     if curl -s "http://$SERVER_HOST:$SERVER_PORT/health" > /dev/null 2>&1; then
@@ -44,12 +47,17 @@ while [ $RETRIES -lt $MAX_RETRIES ]; do
         break
     fi
     RETRIES=$((RETRIES + 1))
-    echo "Retry $RETRIES/$MAX_RETRIES..."
+    # Show progress every 10 retries
+    if [ $((RETRIES % 10)) -eq 0 ]; then
+        echo "Still waiting... ($RETRIES/$MAX_RETRIES seconds elapsed)"
+    fi
     sleep $RETRY_DELAY
 done
 
 if [ $RETRIES -eq $MAX_RETRIES ]; then
     echo -e "${RED}Server failed to start within $MAX_RETRIES seconds${NC}"
+    echo -e "${YELLOW}Last 50 lines of server log:${NC}"
+    tail -n 50 "$SERVER_LOG" || echo "Could not read server log"
     exit 1
 fi
 
