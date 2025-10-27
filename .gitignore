@@ -2,16 +2,21 @@
 target/
 project/target/
 project/project/
+project/project/project/
 
 # Bloop (Build Server Protocol)
 .bsp/
 .bloop/
 project/.bloop/
+project/project/.bloop/
 
 # Metals (Scala Language Server)
 .metals/
 .metals.sbt
 metals.sbt
+project/metals.sbt
+project/project/metals.sbt
+project/project/project/metals.sbt
 
 # IntelliJ IDEA
 .idea/
@@ -22,6 +27,9 @@ metals.sbt
 
 # VS Code
 .vscode/
+
+# Claude Code
+.claude/settings.local.json
 
 # Mac OS
 .DS_Store
