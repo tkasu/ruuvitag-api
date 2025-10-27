@@ -15,7 +15,7 @@ final case class MeasurementsProgram(
 
   def getMeasurements(
       userJwt: String,
-      sensorName: SensorName,
+      macAddress: MacAddress,
       measurementType: MeasurementType,
       from: OffsetDateTime,
       to: OffsetDateTime
@@ -24,7 +24,7 @@ final case class MeasurementsProgram(
     measurements <- maybeUser
       .map(user =>
         measurementsService
-          .getMeasurements(user, sensorName, measurementType, from, to)
+          .getMeasurements(user, macAddress, measurementType, from, to)
       )
       .getOrElse(ZIO.succeed(List.empty))
   yield measurements

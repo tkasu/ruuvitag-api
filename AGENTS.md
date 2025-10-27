@@ -160,7 +160,7 @@ trait Auth:
 trait MeasurementsService:
   def getMeasurements(
       user: User,
-      sensorName: SensorName,
+      macAddress: MacAddress,
       measurementType: MeasurementType,
       from: OffsetDateTime,
       to: OffsetDateTime
@@ -171,7 +171,7 @@ trait MeasurementsService:
       measurements: NonEmptyList[Measurement]
   ): Task[Unit]
 ```
-- Query measurements by sensor, type, and time range
+- Query measurements by MAC address, type, and time range
 - Insert batches (NonEmptyList ensures non-empty)
 - User-scoped for multi-tenant support
 
@@ -193,7 +193,7 @@ final case class MeasurementsProgram(
 ):
   def getMeasurements(
       userJwt: String,
-      sensorName: SensorName,
+      macAddress: MacAddress,
       measurementType: MeasurementType,
       from: OffsetDateTime,
       to: OffsetDateTime
@@ -202,7 +202,7 @@ final case class MeasurementsProgram(
     measurements <- maybeUser
       .map(user =>
         measurementsService
-          .getMeasurements(user, sensorName, measurementType, from, to)
+          .getMeasurements(user, macAddress, measurementType, from, to)
       )
       .getOrElse(ZIO.succeed(List.empty))
   yield measurements
@@ -218,18 +218,18 @@ final case class MeasurementsProgram(
 
 **OpenAPI 3.1.0 specification** defines HTTP interface:
 
-**GET /telemetry/{telemetryType}/{sensorName}**
+**GET /telemetry/{telemetryType}**
 - Returns array of measurements
-- Query params: from, to (time range)
+- Query params: macAddress (required), from (required), to (required)
 - Response: 200 OK with Measurement array
 
-**POST /telemetry/{sensorName}**
+**POST /telemetry**
 - Sends new telemetry data
 - Request body: Array of telemetry objects
 - Response: 201 Created
 
 **Schemas:**
-- Measurement: sensor_name, timestamp (unix ms), value
+- Measurement: mac_address (format: XX:XX:XX:XX:XX:XX), timestamp (unix ms), value
 
 #### API Specification Alignment
 
@@ -245,7 +245,7 @@ The implementation uses a **DTO (Data Transfer Object) layer** to ensure the HTT
    - Independent of HTTP/JSON representation
 
 2. **DTO Models** (`http/dto/*.scala`) - HTTP API representation
-   - `MeasurementDto`: Matches OpenAPI spec exactly (sensor_name, timestamp, value)
+   - `MeasurementDto`: Matches OpenAPI spec exactly (mac_address, timestamp, value)
    - Flat structure with snake_case field names
    - Direct 1:1 mapping to JSON schema in OpenAPI spec
 
@@ -262,7 +262,7 @@ The implementation uses a **DTO (Data Transfer Object) layer** to ensure the HTT
 // GET endpoint: Domain → DTO
 val measurements: List[Measurement] = program.getMeasurements(...)
 val dtos: List[MeasurementDto] = measurements.map(MeasurementDto.fromDomain)
-// Returns: [{"sensor_name": "...", "timestamp": 123, "value": 22.5}]
+// Returns: [{"mac_address": "FE:26:88:7A:66:66", "timestamp": 123, "value": 22.5}]
 
 // POST endpoint: DTO → Domain
 val dto: MeasurementDto = parseJson(...)
@@ -448,7 +448,7 @@ ruuvi-reader-rs | \
 
 **POST Endpoint:**
 ```
-POST /telemetry/{sensorName}
+POST /telemetry
 Content-Type: application/json
 Authorization: Bearer <jwt-token>
 
@@ -457,12 +457,12 @@ Authorization: Bearer <jwt-token>
     "telemetry_type": "temperature",
     "data": [
       {
-        "sensor_name": "sensor-1",
+        "mac_address": "FE:26:88:7A:66:66",
         "timestamp": 1640995200000,
         "value": 22.5
       },
       {
-        "sensor_name": "sensor-1",
+        "mac_address": "FE:26:88:7A:66:66",
         "timestamp": 1640995260000,
         "value": 22.6
       }
@@ -472,7 +472,7 @@ Authorization: Bearer <jwt-token>
     "telemetry_type": "humidity",
     "data": [
       {
-        "sensor_name": "sensor-1",
+        "mac_address": "FE:26:88:7A:66:66",
         "timestamp": 1640995200000,
         "value": 45.2
       }
@@ -485,18 +485,18 @@ Authorization: Bearer <jwt-token>
 
 **Query Endpoint:**
 ```bash
-GET /telemetry/temperature/sensor-name?from=2024-01-01T00:00:00Z&to=2024-01-31T23:59:59Z
+GET /telemetry/temperature?macAddress=FE:26:88:7A:66:66&from=2024-01-01T00:00:00Z&to=2024-01-31T23:59:59Z
 Authorization: Bearer <jwt-token>
 
 Response:
 [
   {
-    "sensor_name": "sensor-1",
+    "mac_address": "FE:26:88:7A:66:66",
     "timestamp": 1705324200000,
     "value": 22.5
   },
   {
-    "sensor_name": "sensor-1",
+    "mac_address": "FE:26:88:7A:66:66",
     "timestamp": 1705327800000,
     "value": 22.7
   }
@@ -562,10 +562,10 @@ import org.http4s.dsl.io.*
 import zio.interop.catz.*
 
 object Routes:
-  def measurementRoutes(program: MeasurementsProgram): HttpRoutes[Task] = 
+  def measurementRoutes(program: MeasurementsProgram): HttpRoutes[Task] =
     HttpRoutes.of[Task] {
-      case GET -> Root / "telemetry" / telemetryType / sensorName :? 
-          FromParam(from) +& ToParam(to) =>
+      case GET -> Root / "telemetry" / telemetryType :?
+          MacAddressParam(macAddress) +& FromParam(from) +& ToParam(to) =>
         // Extract JWT from Authorization header
         // Call program.getMeasurements(...)
         // Return JSON response
@@ -598,15 +598,15 @@ class PostgresMeasurementsService(xa: Transactor[Task])
 
   def getMeasurements(
       user: User,
-      sensorName: SensorName,
+      macAddress: MacAddress,
       measurementType: MeasurementType,
       from: OffsetDateTime,
       to: OffsetDateTime
   ): Task[List[Measurement]] =
     sql"""
-      SELECT sensor_name, measurement_type, timestamp, value
+      SELECT mac_address, measurement_type, timestamp, value
       FROM measurements
-      WHERE sensor_name = ${sensorName.value}
+      WHERE mac_address = ${macAddress.value}
         AND measurement_type = ${measurementType.toString}
         AND timestamp BETWEEN $from AND $to
         AND user_id = ${user.id.value}
@@ -622,14 +622,14 @@ class PostgresMeasurementsService(xa: Transactor[Task])
 CREATE TABLE measurements (
   id BIGSERIAL PRIMARY KEY,
   user_id UUID NOT NULL,
-  sensor_name VARCHAR(255) NOT NULL,
+  mac_address VARCHAR(17) NOT NULL,  -- Format: XX:XX:XX:XX:XX:XX
   measurement_type VARCHAR(50) NOT NULL,
   timestamp TIMESTAMPTZ NOT NULL,
   value DOUBLE PRECISION NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_measurements_user_sensor ON measurements(user_id, sensor_name);
+CREATE INDEX idx_measurements_user_mac ON measurements(user_id, mac_address);
 CREATE INDEX idx_measurements_timestamp ON measurements(timestamp DESC);
 ```
 

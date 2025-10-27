@@ -6,9 +6,9 @@ servers:
   - url: http://api.fixme.com/v1
     description: FIXME
 paths:
-  /telemetry/{telemetryType}/{sensorName}:
+  /telemetry/{telemetryType}:
     get:
-      summary: Return array of latest telemetry for given telemetryType and sensorName
+      summary: Return array of latest telemetry for given telemetryType and sensor
       parameters:
         - name: telemetryType
           in: path
@@ -16,12 +16,28 @@ paths:
           schema:
             $ref: '#/components/schemas/TelemetryType'
           description: Type of telemetry measurement to retrieve
-        - name: sensorName
-          in: path
+        - name: macAddress
+          in: query
           required: true
           schema:
             type: string
-          description: Name of the sensor
+            pattern: '^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$'
+          description: MAC address of the sensor (format: XX:XX:XX:XX:XX:XX, e.g., FE:26:88:7A:66:66)
+          example: "FE:26:88:7A:66:66"
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Start timestamp (ISO 8601 or unix milliseconds)
+          example: "2025-01-01T00:00:00Z"
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+          description: End timestamp (ISO 8601 or unix milliseconds)
+          example: "2025-01-31T23:59:59Z"
         - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
@@ -32,16 +48,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Measurement'
-  /telemetry/{sensorName}:
+  /telemetry:
     post:
-      summary: Send new telemetries to server for a given sensor
+      summary: Send new telemetries to server
       parameters:
-        - name: sensorName
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Name of the sensor
         - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
@@ -94,8 +104,11 @@ components:
 
     Measurement:
       properties:
-        sensor_name:
+        mac_address:
           type: string
+          pattern: '^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$'
+          description: MAC address of the sensor (format: XX:XX:XX:XX:XX:XX)
+          example: "FE:26:88:7A:66:66"
         timestamp:
           type: integer
           description: Timestamp in unix format (ms)

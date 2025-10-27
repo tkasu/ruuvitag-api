@@ -5,13 +5,13 @@ import zio.Task
 import zio.prelude.NonEmptyList
 import com.github.tkasu.ruuvitag.api.domain.measurement.*
 import com.github.tkasu.ruuvitag.api.domain.measurementtype.MeasurementType
-import com.github.tkasu.ruuvitag.api.domain.sensor.SensorName
+import com.github.tkasu.ruuvitag.api.domain.sensor.MacAddress
 import com.github.tkasu.ruuvitag.api.domain.user.User
 
 trait MeasurementsService:
   def getMeasurements(
       user: User,
-      sensorName: SensorName,
+      macAddress: MacAddress,
       measurementType: MeasurementType,
       from: OffsetDateTime,
       to: OffsetDateTime

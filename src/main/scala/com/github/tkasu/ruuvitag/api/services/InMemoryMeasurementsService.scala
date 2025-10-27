@@ -5,7 +5,7 @@ import zio.{Task, UIO, Ref, ZIO}
 import zio.prelude.NonEmptyList
 import com.github.tkasu.ruuvitag.api.domain.measurement.*
 import com.github.tkasu.ruuvitag.api.domain.measurementtype.MeasurementType
-import com.github.tkasu.ruuvitag.api.domain.sensor.SensorName
+import com.github.tkasu.ruuvitag.api.domain.sensor.MacAddress
 import com.github.tkasu.ruuvitag.api.domain.user.{User, UserId}
 
 /** In-memory implementation of MeasurementsService for testing and development.
@@ -32,7 +32,7 @@ final case class InMemoryMeasurementsService(
 
   def getMeasurements(
       user: User,
-      sensorName: SensorName,
+      macAddress: MacAddress,
       measurementType: MeasurementType,
       from: OffsetDateTime,
       to: OffsetDateTime
@@ -41,7 +41,7 @@ final case class InMemoryMeasurementsService(
       allMeasurements
         .filter { case (userId, measurement) =>
           userId == user.id &&
-          measurement.sensor.name == sensorName &&
+          measurement.sensor.macAddress == macAddress &&
           measurement.measurementType == measurementType &&
           !measurement.timestamp.value.isBefore(from) &&
           !measurement.timestamp.value.isAfter(to)

@@ -26,8 +26,8 @@ The server will start on `http://0.0.0.0:8081` by default.
 
 - `GET /health` - Health check endpoint
 - `GET /metrics` - Prometheus metrics endpoint
-- `GET /telemetry/{measurementType}/{sensorName}?from={timestamp}&to={timestamp}` - Get measurements
-- `POST /telemetry/{sensorName}` - Add measurements
+- `GET /telemetry/{measurementType}?macAddress={macAddress}&from={timestamp}&to={timestamp}` - Get measurements
+- `POST /telemetry` - Add measurements
 
 ### Example Usage
 
@@ -38,24 +38,24 @@ curl http://localhost:8081/health
 # Get Prometheus metrics
 curl http://localhost:8081/metrics
 
-# Get temperature measurements (timestamps in milliseconds since epoch)
-curl "http://localhost:8081/telemetry/Temperature/sensor-1?from=1609459200000&to=1640995200000"
-
 # Add measurements
-curl -X POST http://localhost:8081/telemetry/sensor-1 \
+curl -X POST http://localhost:8081/telemetry \
   -H "Content-Type: application/json" \
   -d '[
     {
       "telemetry_type": "temperature",
       "data": [
         {
-          "sensor_name": "sensor-1",
-          "timestamp": 1640995200000,
+          "mac_address": "FE:26:88:7A:66:66",
+          "timestamp": 1736942400000,
           "value": 22.5
         }
       ]
     }
   ]'
+
+# Get temperature measurements (timestamps in ISO 8601 format or milliseconds since epoch)
+curl "http://localhost:8081/telemetry/Temperature?macAddress=FE:26:88:7A:66:66&from=2025-01-01T00:00:00Z&to=2025-01-31T23:59:59Z"
 ```
 
 ## Configuration

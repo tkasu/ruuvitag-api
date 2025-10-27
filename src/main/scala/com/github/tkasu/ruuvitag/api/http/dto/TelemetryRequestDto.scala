@@ -2,10 +2,11 @@ package com.github.tkasu.ruuvitag.api.http.dto
 
 import zio.json.*
 
-/** DTO matching the OpenAPI spec for POST /telemetry/{sensorName}
+/** DTO matching the OpenAPI spec for POST /telemetry
   *
   * Request body structure: [ { "telemetry_type": "temperature", "data": [ {
-  * "sensor_name": "...", "timestamp": 1640995200000, "value": 22.5 } ] } ]
+  * "mac_address": "FE:26:88:7A:66:66", "timestamp": 1640995200000, "value":
+  * 22.5 } ] } ]
   *
   * Note: timestamp is in milliseconds since Unix epoch
   */
