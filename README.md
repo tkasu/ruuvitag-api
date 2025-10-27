@@ -38,9 +38,6 @@ curl http://localhost:8081/health
 # Get Prometheus metrics
 curl http://localhost:8081/metrics
 
-# Get temperature measurements (timestamps in ISO 8601 format or milliseconds since epoch)
-curl "http://localhost:8081/telemetry/Temperature?macAddress=FE:26:88:7A:66:66&from=2025-01-01T00:00:00Z&to=2025-01-31T23:59:59Z"
-
 # Add measurements
 curl -X POST http://localhost:8081/telemetry \
   -H "Content-Type: application/json" \
@@ -50,12 +47,15 @@ curl -X POST http://localhost:8081/telemetry \
       "data": [
         {
           "mac_address": "FE:26:88:7A:66:66",
-          "timestamp": 1640995200000,
+          "timestamp": 1736942400000,
           "value": 22.5
         }
       ]
     }
   ]'
+
+# Get temperature measurements (timestamps in ISO 8601 format or milliseconds since epoch)
+curl "http://localhost:8081/telemetry/Temperature?macAddress=FE:26:88:7A:66:66&from=2025-01-01T00:00:00Z&to=2025-01-31T23:59:59Z"
 ```
 
 ## Configuration
