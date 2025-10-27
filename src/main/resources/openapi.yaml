@@ -14,15 +14,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            enum:
-              - temperature
-              - humidity
-              - pressure
-              - battery
-              - tx_power
-              - movement_counter
-              - measurement_sequence_number
+            $ref: '#/components/schemas/TelemetryType'
           description: Type of telemetry measurement to retrieve
         - name: sensorName
           in: path
@@ -61,15 +53,7 @@ paths:
                 type: object
                 properties:
                   telemetry_type:
-                    type: string
-                    enum:
-                      - temperature
-                      - humidity
-                      - pressure
-                      - battery
-                      - tx_power
-                      - movement_counter
-                      - measurement_sequence_number
+                    $ref: '#/components/schemas/TelemetryType'
                     description: Type of telemetry measurement
                   data:
                     type: array
@@ -96,6 +80,18 @@ components:
       example: "550e8400-e29b-41d4-a716-446655440000"
   
   schemas:
+    TelemetryType:
+      type: string
+      enum:
+        - temperature
+        - humidity
+        - pressure
+        - battery
+        - tx_power
+        - movement_counter
+        - measurement_sequence_number
+      description: Type of telemetry measurement
+
     Measurement:
       properties:
         sensor_name:
