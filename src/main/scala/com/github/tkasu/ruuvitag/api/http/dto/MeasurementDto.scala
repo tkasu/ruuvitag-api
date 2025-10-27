@@ -6,19 +6,19 @@ import com.github.tkasu.ruuvitag.api.domain.measurement.{
   Timestamp,
   Value
 }
-import com.github.tkasu.ruuvitag.api.domain.sensor.{Sensor, SensorName}
+import com.github.tkasu.ruuvitag.api.domain.sensor.{Sensor, MacAddress}
 import com.github.tkasu.ruuvitag.api.domain.measurementtype.MeasurementType
 
 /** DTO matching the OpenAPI spec Measurement schema
   *
-  * OpenAPI spec defines Measurement with: - sensor_name: string - timestamp:
-  * integer (unix ms) - value: number
+  * OpenAPI spec defines Measurement with: - mac_address: string (format:
+  * XX:XX:XX:XX:XX:XX) - timestamp: integer (unix ms) - value: number
   *
   * Note: measurementType is NOT included in this DTO as it's specified in the
-  * URL path for GET requests
+  * URL path or request body for GET/POST requests
   */
 case class MeasurementDto(
-    sensor_name: String,
+    mac_address: String,
     timestamp: Long, // unix timestamp in milliseconds
     value: Double
 )
@@ -30,7 +30,7 @@ object MeasurementDto:
   /** Convert domain Measurement to DTO */
   def fromDomain(measurement: Measurement): MeasurementDto =
     MeasurementDto(
-      sensor_name = measurement.sensor.name.value,
+      mac_address = measurement.sensor.macAddress.value,
       timestamp = measurement.timestamp.value.toInstant.toEpochMilli,
       value = measurement.value.value
     )
@@ -45,7 +45,7 @@ object MeasurementDto:
       measurementType: MeasurementType
   ): Measurement =
     Measurement(
-      sensor = Sensor(SensorName(dto.sensor_name)),
+      sensor = Sensor(MacAddress(dto.mac_address)),
       measurementType = measurementType,
       timestamp = Timestamp(
         java.time.OffsetDateTime.ofInstant(

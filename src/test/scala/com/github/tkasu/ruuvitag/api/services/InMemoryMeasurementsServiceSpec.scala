@@ -7,15 +7,15 @@ import zio.test.*
 import zio.prelude.NonEmptyList
 import com.github.tkasu.ruuvitag.api.domain.measurement.*
 import com.github.tkasu.ruuvitag.api.domain.measurementtype.MeasurementType
-import com.github.tkasu.ruuvitag.api.domain.sensor.{Sensor, SensorName}
+import com.github.tkasu.ruuvitag.api.domain.sensor.{Sensor, MacAddress}
 import com.github.tkasu.ruuvitag.api.domain.user.{User, UserId, UserName}
 
 object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
 
   val testUser1 = User(UserId(UUID.randomUUID()), UserName("user1"))
   val testUser2 = User(UserId(UUID.randomUUID()), UserName("user2"))
-  val sensor1 = Sensor(SensorName("sensor-1"))
-  val sensor2 = Sensor(SensorName("sensor-2"))
+  val sensor1 = Sensor(MacAddress("FE:26:88:7A:66:66"))
+  val sensor2 = Sensor(MacAddress("D5:12:34:66:14:14"))
   val baseTime = OffsetDateTime.now()
 
   val tempMeasurement1 = Measurement(
@@ -56,7 +56,7 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         )
         measurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(2)
@@ -67,7 +67,7 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         measurements.contains(tempMeasurement2)
       )
     },
-    test("should filter measurements by sensor name") {
+    test("should filter measurements by MAC address") {
       for
         service <- InMemoryMeasurementsService.make
         _ <- service.addMeasurements(
@@ -76,14 +76,14 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         )
         sensor1Measurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(2)
         )
         sensor2Measurements <- service.getMeasurements(
           testUser1,
-          sensor2.name,
+          sensor2.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(2)
@@ -104,14 +104,14 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         )
         tempMeasurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(3)
         )
         humidityMeasurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Humidity,
           baseTime.minusHours(1),
           baseTime.plusHours(3)
@@ -133,7 +133,7 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         // Query only the first hour
         earlyMeasurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusMinutes(30)
@@ -141,7 +141,7 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         // Query from 1 hour onwards
         laterMeasurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.plusMinutes(30),
           baseTime.plusHours(3)
@@ -166,14 +166,14 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         )
         user1Measurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(2)
         )
         user2Measurements <- service.getMeasurements(
           testUser2,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(2)
@@ -194,7 +194,7 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         )
         measurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Pressure, // Different type
           baseTime.minusHours(1),
           baseTime.plusHours(2)
@@ -214,7 +214,7 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         )
         measurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(2)
@@ -235,7 +235,7 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         // Query with exact timestamp boundaries
         measurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime, // Exact match on 'from'
           baseTime.plusHours(1) // Exact match on 'to'
@@ -251,7 +251,7 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         service <- InMemoryMeasurementsService.make
         measurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(2)
@@ -274,14 +274,14 @@ object InMemoryMeasurementsServiceSpec extends ZIOSpecDefault:
         )
         user1Measurements <- service.getMeasurements(
           testUser1,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Temperature,
           baseTime.minusHours(1),
           baseTime.plusHours(2)
         )
         user2Measurements <- service.getMeasurements(
           testUser2,
-          sensor1.name,
+          sensor1.macAddress,
           MeasurementType.Humidity,
           baseTime.minusHours(1),
           baseTime.plusHours(3)

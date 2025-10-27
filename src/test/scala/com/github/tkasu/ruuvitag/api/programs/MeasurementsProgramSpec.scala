@@ -9,7 +9,7 @@ import java.util.UUID
 
 import com.github.tkasu.ruuvitag.api.services.*
 import com.github.tkasu.ruuvitag.api.domain.user.{User, UserId, UserName}
-import com.github.tkasu.ruuvitag.api.domain.sensor.{Sensor, SensorName}
+import com.github.tkasu.ruuvitag.api.domain.sensor.{Sensor, MacAddress}
 import com.github.tkasu.ruuvitag.api.domain.measurement.{
   Measurement,
   Timestamp,
@@ -27,7 +27,7 @@ object MeasurementsProgramSpec extends ZIOSpecDefault:
   val validJwt = "valid-token"
   val invalidJwt = "invalid-token"
 
-  val testSensor = Sensor(SensorName("test-sensor"))
+  val testSensor = Sensor(MacAddress("FE:26:88:7A:66:66"))
   val testTimestamp = Timestamp(OffsetDateTime.parse("2025-01-01T12:00:00Z"))
   val testMeasurement = Measurement(
     testSensor,
@@ -52,7 +52,7 @@ object MeasurementsProgramSpec extends ZIOSpecDefault:
         // Get measurements
         result <- program.getMeasurements(
           validJwt,
-          SensorName("test-sensor"),
+          MacAddress("FE:26:88:7A:66:66"),
           MeasurementType.Temperature,
           OffsetDateTime.parse("2025-01-01T00:00:00Z"),
           OffsetDateTime.parse("2025-01-01T23:59:59Z")
@@ -74,22 +74,22 @@ object MeasurementsProgramSpec extends ZIOSpecDefault:
         // Get measurements with invalid token
         result <- program.getMeasurements(
           invalidJwt,
-          SensorName("test-sensor"),
+          MacAddress("FE:26:88:7A:66:66"),
           MeasurementType.Temperature,
           OffsetDateTime.parse("2025-01-01T00:00:00Z"),
           OffsetDateTime.parse("2025-01-01T23:59:59Z")
         )
       yield assertTrue(result.isEmpty)
     },
-    test("getMeasurements filters by sensor name") {
+    test("getMeasurements filters by MAC address") {
       for
         authService <- ZIO.succeed(NoopAuth(testUser))
         measurementsService <- InMemoryMeasurementsService.make
         program = MeasurementsProgram(authService, measurementsService)
 
         // Add measurements for different sensors
-        sensor1 = Sensor(SensorName("sensor-1"))
-        sensor2 = Sensor(SensorName("sensor-2"))
+        sensor1 = Sensor(MacAddress("FE:26:88:7A:66:66"))
+        sensor2 = Sensor(MacAddress("D5:12:34:66:14:14"))
         measurement1 = testMeasurement.copy(sensor = sensor1)
         measurement2 = testMeasurement.copy(sensor = sensor2)
 
@@ -101,7 +101,7 @@ object MeasurementsProgramSpec extends ZIOSpecDefault:
         // Get measurements for sensor-1 only
         result <- program.getMeasurements(
           validJwt,
-          SensorName("sensor-1"),
+          MacAddress("FE:26:88:7A:66:66"),
           MeasurementType.Temperature,
           OffsetDateTime.parse("2025-01-01T00:00:00Z"),
           OffsetDateTime.parse("2025-01-01T23:59:59Z")
@@ -131,7 +131,7 @@ object MeasurementsProgramSpec extends ZIOSpecDefault:
         // Get temperature measurements only
         result <- program.getMeasurements(
           validJwt,
-          SensorName("test-sensor"),
+          MacAddress("FE:26:88:7A:66:66"),
           MeasurementType.Temperature,
           OffsetDateTime.parse("2025-01-01T00:00:00Z"),
           OffsetDateTime.parse("2025-01-01T23:59:59Z")
@@ -156,7 +156,7 @@ object MeasurementsProgramSpec extends ZIOSpecDefault:
         // Verify measurements were stored
         result <- measurementsService.getMeasurements(
           testUser,
-          SensorName("test-sensor"),
+          MacAddress("FE:26:88:7A:66:66"),
           MeasurementType.Temperature,
           OffsetDateTime.parse("2025-01-01T00:00:00Z"),
           OffsetDateTime.parse("2025-01-01T23:59:59Z")
@@ -207,7 +207,7 @@ object MeasurementsProgramSpec extends ZIOSpecDefault:
         // Verify all measurements were stored
         result <- program.getMeasurements(
           validJwt,
-          SensorName("test-sensor"),
+          MacAddress("FE:26:88:7A:66:66"),
           MeasurementType.Temperature,
           OffsetDateTime.parse("2025-01-01T00:00:00Z"),
           OffsetDateTime.parse("2025-01-01T23:59:59Z")
